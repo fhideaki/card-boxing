@@ -1,4 +1,3 @@
-# Imports
 from static import card_list
 
 # Método para encontrar uma carta pelo ID
@@ -31,17 +30,17 @@ class Deck:
                 )
         
         # Colocando uma carta especial para cada arquétipo diferente
-        if archetype == "ATK":
+        if archetype == "atk":
             for i in range(2):
                 self.deck.append(
                     findCardById(cards, 4)
                     )
-        elif archetype == "DEF":
+        elif archetype == "def":
             for i in range(2):
                 self.deck.append(
                     findCardById(cards, 5)
                     )
-        elif archetype == "BAL":
+        elif archetype == "bal":
             self.deck.append(
                 findCardById(cards, 4)
                 )

@@ -1,5 +1,11 @@
 # Card Boxing Game
 
+# Imports
+# Imports rich são para melhorar a qualidade do display dos dados para o usuário
+from rich.console import Console
+from rich.table import Table
+from static import parts_list
+
 # Dois robôs boxeadores se enfrentam no ringue. Cada robô realiza uma ação que é declarada por meio de cartas.
 # O jogo dura 3 rounds.
 # Cada round acontece em 3 turnos.
@@ -7,119 +13,320 @@
 
 # Criando primeiro a classe robô.
 class Robot:
-    # Aqui o jogador define se ele quer um arquétipo de robô focado em ataque, defesa ou balanceado. Isso define os atributos base do jogador.
-    def __init__(self, archetype):
-        if archetype == "ATK":
+    # Aqui o jogador define se ele quer um arquétipo de robô focado em ataque, defesa ou balanceado. Isso define os atributos base do robô.
+    def __init__(self, archetype, robot_name=None):
+        
+        self.archetype = archetype
+        
+        if archetype == "atk":
             self.constitution = 6
             self.strength = 10
             self.agility = 8
             self.HP = 6
-        elif archetype == "DEF":
+            
+        elif archetype == "def":
             self.constitution = 10
             self.strength = 6
             self.agility = 6
             self.HP = 8
-        elif archetype == "BAL":
+            
+        elif archetype == "bal":
             self.constitution = 7
             self.strength = 7
             self.agility = 7
             self.HP = 7
+            
+        self.robot_name = robot_name
+            
         self.defense = self.constitution + (0.6 * self.strength)
         self.attack = self.strength + (0.6 * self.agility)
         self.clinch = self.agility + (0.6 * self.strength)
 
-        self.part_list = []
-
         self.resistances = []
         self.weaknesses = []
+        
+        # Dicionário com os slots do robô e suas partes
+        self.slots = {
+            "head": None,
+            "body": None,
+            "right_arm": None,
+            "left_arm": None,
+            "right_leg": None,
+            "left_leg": None
+        }
+        
+        self.robot_console = Console()
+        
+    # Método para criar a estrutura da tabela de partes
+    def _create_parts_table(self, title):
+        # Cria a tabela
+        parts_table = Table(title=title)
+        
+        #Cria as colunas da tabela
+        parts_table.add_column("ID")
+        parts_table.add_column("Part Name")        
+        parts_table.add_column("Slot")  
+        parts_table.add_column("Type")
+        parts_table.add_column("Description")
+        parts_table.add_column("Con")        
+        parts_table.add_column("Str")        
+        parts_table.add_column("Agi")
+        parts_table.add_column("HP")           
+        parts_table.add_column("Resistances")        
+        parts_table.add_column("Weaknesses")
+        
+        return parts_table
     
-    # Daqui pra baixo o jogador define as peças do robô que ele quer jogar, quando ele define a peça, o método atualiza os atributos.
-    def setHead(self, head_part):
+    # Método para formatar cada linha da tabela
+    def _add_part_row(self, parts_table, part):
+        
+        resistances_display = ", ".join(part["resistances"]) if part["resistances"] else "N/A"
+        weaknesses_display = ", ".join(part["weaknesses"]) if part["weaknesses"] else "N/A"
+        
+        parts_table.add_row(
+            str(part["id"]),
+            part["part_name"],
+            part["slot"],
+            part["type"],
+            part["description"],
+            str(part["modifiers"]["constitution"]),
+            str(part["modifiers"]["strength"]),
+            str(part["modifiers"]["agility"]),
+            str(part["modifiers"]["HP"]),
+            ", ".join(part["resistances"]) if part["resistances"] else "N/A",
+            ", ".join(part["weaknesses"]) if part["weaknesses"] else "N/A"
+        )
+        
+    # Método para mostrar os atributos e status do robô.
+    def showStats(self):
+        stats_table = Table(title=f"{self.robot_name} Robot Status")
+        stats_table.add_column("Con")
+        stats_table.add_column("Str")
+        stats_table.add_column("Agi")
+        stats_table.add_column("HP")
+        stats_table.add_column("Def")
+        stats_table.add_column("Atk")
+        stats_table.add_column("Cli")
+        stats_table.add_column("Resistances")
+        stats_table.add_column("Weaknesses")
+        
+        # Escrevendo a tabela
+        stats_table.add_row(
+            str(self.constitution),
+            str(self.strength),
+            str(self.agility),
+            str(self.HP),
+            str(self.defense),
+            str(self.attack),
+            str(self.clinch),
+            ", ".join(self.resistances) if self.resistances else "N/A",
+            ", ".join(self.weaknesses) if self.weaknesses else "N/A"
+        )
+        
+        self.robot_console.print(stats_table)
 
-        if head_part["slot"] == "HEAD":
+    # Método para receber a peça de um slot.
+    def getPartFromSlot(self, slot):
+        return self.slots.get(slot, None)
+        
+    # Método para checar se o slot está vago.
+    def checkSlotIfEmpty(self, slot):
+        
+        found_part = self.slots.get(slot)
 
-            self.constitution += head_part["modifiers"]["constitution"]
-            self.strength += head_part["modifiers"]["strength"]
-            self.agility += head_part["modifiers"]["agility"]
-            self.HP += head_part["modifiers"]["HP"]
-            self.part_list.append(head_part)
+        # Se não encontrar uma parte, retorna False
+        if found_part is None:
+            print(f"Slot '{slot}' is Empty.")
+            return False
+        # Se encontrar uma parte, retorna a parte.
+        else:
+            self.showParts(found_part["id"])
+            return found_part
+        
+    # Método para exibir os slots e retornar a peça 
+    def showSlots(self, slot=None):
+        
+        robot_slots = Table(title=f"Robot {self.robot_name} Slots")
+        robot_slots.add_column("Slot")
+        robot_slots.add_column("Part ID")
+        robot_slots.add_column("Part Name")
+        robot_slots.add_column("Part Type")
+        
+        # Iterando sobre as partes (head, body, etc)
+        for slot_name in self.slots:
+            # Retornando o dicionário da peça procurada, ou None caso não tenha peça
+            part_data = self.getPartFromSlot(slot_name)
+            
+            if part_data:
+                part_id = str(part_data["id"])
+                part_name = part_data["part_name"]
+                part_type = part_data["type"]
+            
+            else:
+                part_id = "N/A"
+                part_name = "N/A"
+                part_type = "N/A"
 
-            for i in head_part["resistances"]:
-                self.resistances.append(i)
-            for i in head_part["weaknesses"]:
-                self.weaknesses.append(i)
+            robot_slots.add_row(
+                slot_name,
+                part_id,
+                part_name,
+                part_type
+            )
 
-    def setBody(self, body_part):
+        self.robot_console.print(robot_slots)
+    
+    # Colocando uma peça em um slot.
+    def setSlot(self, slot, part):
+        # A parte é referente ao slot correto?
+        if part["slot"] == slot:
+            # Checando se o slot está vazio
+            if self.checkSlotIfEmpty(slot) is False:
+                
+                print(f"Slot {slot} empty and available. Printing current robot stats.")
+                
+                self.showStats()
+                
+                # Adicionando os modificadores nos atributos base do robô
+                self.slots[part["slot"]] = part
+                self.constitution += part["modifiers"]["constitution"]
+                self.strength += part["modifiers"]["strength"]
+                self.agility += part["modifiers"]["agility"]
+                self.HP += part["modifiers"]["HP"]
 
-        if body_part["slot"] == "BODY":
+                for i in part["resistances"]:
+                    self.resistances.append(i)
+                for i in part["weaknesses"]:
+                    self.weaknesses.append(i)
+                
+                print(f"Part {part['part_name']} equipped in slot {slot}")
+                print(f"New stats after part was equipped:")
+                self.showStats()
+                
+                return self.showSlots()
+            
+            # Se o slot estiver ocupado
+            else:
+                # Removendo os modificadores antigos
+                print(f"Slot {slot} already equipped with {self.slots[slot]['part_name']} part. Showing current stats.")
+                self.showStats()
+                
+                print("Removing currently equipped part.")
+                
+                old_part = self.slots[slot]
+                self.constitution -= old_part["modifiers"]["constitution"]
+                self.strength -= old_part["modifiers"]["strength"]
+                self.agility -= old_part["modifiers"]["agility"]
+                self.HP -= old_part["modifiers"]["HP"]
+                
+                # Removendo as resistências e fraquezas da parte antiga.
+                for i in old_part["resistances"]:
+                    self.resistances.remove(i)
+                for i in old_part["weaknesses"]:
+                    self.weaknesses.remove(i)
+                
+                print(f"Part {old_part['part_name']} removed.")
+                
+                # Adicionando os modificadores nos atributos base do robô
+                self.slots[part["slot"]] = part
+                self.constitution += part["modifiers"]["constitution"]
+                self.strength += part["modifiers"]["strength"]
+                self.agility += part["modifiers"]["agility"]
+                self.HP += part["modifiers"]["HP"]
 
-            self.constitution += body_part["modifiers"]["constitution"]
-            self.strength += body_part["modifiers"]["strength"]
-            self.agility += body_part["modifiers"]["agility"]
-            self.HP += body_part["modifiers"]["HP"]
-            self.part_list.append(body_part)
+                for i in part["resistances"]:
+                    self.resistances.append(i)
+                for i in part["weaknesses"]:
+                    self.weaknesses.append(i)
+                
+                print(f"Part {part['part_name']} equipped in slot {slot}")
+                print(f"New stats after part was equipped:")
+                self.showStats()
+                
+                return self.showSlots()
+       
+        else:
+            print(f"The part {part['part_name']} is meant to be equipped in the {part['slot']} slot. Not in the {slot} slot.")
+    
+    # Removendo uma peça de um slot.
+    def cleanSlot(self, slot):
+        
+        # Checando se o slot está vazio
+        if self.checkSlotIfEmpty(slot) is False:
 
-            for i in body_part["resistances"]:
-                self.resistances.append(i)
-            for i in body_part["weaknesses"]:
-                self.weaknesses.append(i)
+            print(f"Slot {slot} already empty and available. Printing current robot stats.")
 
-    def setLArm(self, larm_part):
+            self.showStats()
 
-        if larm_part["slot"] == "ARM":
+            return self.showSlots()
 
-            self.constitution += larm_part["modifiers"]["constitution"]
-            self.strength += larm_part["modifiers"]["strength"]
-            self.agility += larm_part["modifiers"]["agility"]
-            self.HP += larm_part["modifiers"]["HP"]
-            self.part_list.append(larm_part)
+        # Se o slot estiver ocupado
+        else:
+            # Removendo os modificadores antigos
+            print(f"Slot {slot} equipped with {self.slots[slot]['part_name']} part. Showing current stats.")
+            self.showStats()
 
-            for i in larm_part["resistances"]:
-                self.resistances.append(i)
-            for i in larm_part["weaknesses"]:
-                self.weaknesses.append(i)
+            print("Removing currently equipped part.")
 
-    def setRArm(self, rarm_part):
+            old_part = self.slots[slot]
+            self.constitution -= old_part["modifiers"]["constitution"]
+            self.strength -= old_part["modifiers"]["strength"]
+            self.agility -= old_part["modifiers"]["agility"]
+            self.HP -= old_part["modifiers"]["HP"]
 
-        if rarm_part["slot"] == "ARM":
+            # Removendo as resistências e fraquezas da parte antiga.
+            for i in old_part["resistances"]:
+                self.resistances.remove(i)
+            for i in old_part["weaknesses"]:
+                self.weaknesses.remove(i)
+                
+            self.slots[slot] = None
 
-            self.constitution += rarm_part["modifiers"]["constitution"]
-            self.strength += rarm_part["modifiers"]["strength"]
-            self.agility += rarm_part["modifiers"]["agility"]
-            self.HP += rarm_part["modifiers"]["HP"]
-            self.part_list.append(rarm_part)
+            print(f"Part {old_part['part_name']} removed.")
 
-            for i in rarm_part["resistances"]:
-                self.resistances.append(i)
-            for i in rarm_part["weaknesses"]:
-                self.weaknesses.append(i)
+            print(f"Updated stats after part was removed:")
+            self.showStats()
 
-    def setLLeg(self, lleg_part):
+            return self.showSlots()
 
-        if lleg_part["slot"] == "LEG":
+    # Mostrar partes disponíveis
+    def showParts(self, id_filter=None, slot_filter=None):
+        
+        # Primeiro, definindo o título
+        if  id_filter is not None:
+            title = f"Part Details (ID: {id_filter})"
+        elif slot_filter is not None:
+            title = f"Parts for Slot: {slot_filter}"
+        else:
+            title = f"All Parts"
+        
+        # Criando a tabela
+        parts_table = self._create_parts_table(title)    
 
-            self.constitution += lleg_part["modifiers"]["constitution"]
-            self.strength += lleg_part["modifiers"]["strength"]
-            self.agility += lleg_part["modifiers"]["agility"]
-            self.HP += lleg_part["modifiers"]["HP"]
-            self.part_list.append(lleg_part)
+        # Filtragem das partes
+        found_parts = False
+        
+        for part in parts_list:
+            
+            # Manda continuar apenas se o id fornecido for diferente do id da parte iterada.
+            if id_filter is not None and part["id"] != id_filter:
+                continue
+            
+            # Mesma dinâmica, porém para as peças com slot diferente do procurado
+            if slot_filter is not None and part["slot"] != slot_filter:
+                continue
+                
+            # Caso isso tenha sido passado por ambos os filtros. Criamos a variável
+            found_parts = True
 
-            for i in lleg_part["resistances"]:
-                self.resistances.append(i)
-            for i in lleg_part["weaknesses"]:
-                self.weaknesses.append(i)
-
-    def letRLeg(self, rleg_part):
-
-        if rleg_part["slot"] == "LEG":
-
-            self.constitution += rleg_part["modifiers"]["constitution"]
-            self.strength += rleg_part["modifiers"]["strength"]
-            self.agility += rleg_part["modifiers"]["agility"]
-            self.HP += rleg_part["modifiers"]["HP"]
-            self.part_list.append(rleg_part)
-
-            for i in rleg_part["resistances"]:
-                self.resistances.append(i)
-            for i in rleg_part["weaknesses"]:
-                self.weaknesses.append(i)
+            self._add_part_row(parts_table, part)
+            
+            # Caso seja uma busca por ID único, a iteraçao acaba assim que encontra o ID
+            if id_filter is not None:
+                break
+        
+        # Valores de saída
+        if found_parts:
+            self.robot_console.print(parts_table)
+        else:
+            self.robot_console.print("No pieces found.")

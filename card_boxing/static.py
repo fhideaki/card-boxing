@@ -4,9 +4,9 @@ card_list = [
     # Criando as cartas de ação básicas.
     {
         "id": 1,
-        "category": "CARD",
+        "category": "card",
         "name": "Simple Guard", 
-        "class": "GUARD", 
+        "class": "guard", 
         "type": "neutral", 
         "description": "Simple Guard. Protects against Attack from opponent.It still can be Clinched", 
         "meta": {
@@ -17,9 +17,9 @@ card_list = [
     },
     {   
         "id": 2,
-        "category": "CARD",
+        "category": "card",
         "name": "Simple Attack", 
-        "class":"ATTACK", 
+        "class":"attack", 
         "type":"neutral", 
         "description": "Simple Attack. Does damage even if the opponent Attacks or Clinches. It can be blocked by Simple Guard.", 
         "meta": {
@@ -30,9 +30,9 @@ card_list = [
     },
     {
         "id": 3,
-        "category": "CARD",
+        "category": "card",
         "name": "Clinch", 
-        "class": "CLINCH", 
+        "class": "clinch", 
         "type": "neutral", 
         "description": "Clinch, holds the opponent fighter. Vulnerable to opponents attacks. Strong against opponents guards.", 
         "meta":{
@@ -45,9 +45,9 @@ card_list = [
         # Criando as cartas de ação especializadas
     {
         "id": 4,
-        "category": "CARD",
+        "category": "card",
         "name": "Strong Attack", 
-        "class": "ATTACK", 
+        "class": "attack", 
         "type": "neutral", 
         "description": "Strong Attack. If the opponent clinches, it does double damage. Does regular damage against Simple Guard.", 
         "meta":{
@@ -58,9 +58,9 @@ card_list = [
     },
     {
         "id": 5, 
-        "category": "CARD",
+        "category": "card",
         "name": "Special Guard", 
-        "class": "GUARD", 
+        "class": "guard", 
         "type": "neutral", 
         "description": "Special Guard. Blocks completely any attack. Invulnerable to clinches.", 
         "meta": {
@@ -75,9 +75,9 @@ card_list = [
 parts_list = [
     {
         "id": 1,
-        "category": "PART",
+        "category": "part",
         "part_name": "Iron Head", 
-        "slot": "HEAD",
+        "slot": "head",
         "type": "iron",
         "description": "A solid Iron head made from pieces found in the scrapyard. If the fighter gets a full set of iron parts, it gets an extra bonus.",
         "modifiers": {
@@ -88,9 +88,9 @@ parts_list = [
             }, 
             "special_card": {
                 "id": 6, 
-                "category": "CARD", 
+                "category": "card", 
                 "name": "Iron Guard",
-                "class": "GUARD", 
+                "class": "guard", 
                 "type": "iron", 
                 "description": "The Iron Guard is so strong that it returns some damage to the oponent if they choose to attack.", 
                 "meta": {
@@ -105,9 +105,9 @@ parts_list = [
     },
     {
         "id": 2,
-        "category": "PART",
+        "category": "part",
         "part_name": "Blazing Arm", 
-        "slot": "ARM", 
+        "slot": "right_arm", 
         "type": "fire",
         "description": "A regular fighter arm bathed in a flammable substance and lit on fire. It increases the damage output but the fire also harms the user.",
         "modifiers": {
@@ -118,9 +118,9 @@ parts_list = [
             }, 
             "special_card": {
                 "id": 7, 
-                "category": "CARD",
+                "category": "card",
                 "name": "Fiery Punch",
-                "class": "ATTACK", 
+                "class": "attack", 
                 "type": "fire", 
                 "description": "Attack that leaves the opponent with a burn. If it lands, the opponent loses one slot of his hand for the end of the round.", 
                 "meta": {
@@ -135,9 +135,9 @@ parts_list = [
     },
     {
         "id": 3,
-        "category": "PART",
+        "category": "part",
         "part_name": "Rubber Arm", 
-        "slot": "ARM",
+        "slot": "left_arm",
         "type": "rubber",
         "description": "A rubber arm that is very flexible and helps holding the opponent. But it is not that powerful.",
         "modifiers": {
@@ -148,9 +148,9 @@ parts_list = [
             }, 
             "special_card": {
                 "id": 8, 
-                "category": "CARD",
+                "category": "card",
                 "name": "Rubber Attack",
-                "class": "ATTACK", 
+                "class": "attack", 
                 "type": "rubber", 
                 "description": "Hits weakly and automatically clinches if it lands.", 
                 "meta": {
@@ -165,9 +165,9 @@ parts_list = [
     },
     {
         "id": 4,
-        "category": "PART",
+        "category": "part",
         "part_name": "Iron Body", 
-        "slot": "BODY",
+        "slot": "body",
         "type": "iron",
         "description": "A body part made of iron. Very heavy and durable. If the fighter gets a full set of iron parts, it gets an extra bonus.",
         "modifiers": {
@@ -175,15 +175,29 @@ parts_list = [
             "strength": 0,
             "agility": -6,
             "HP": 4 
+            },            
+            "special_card": {
+                "id": None, 
+                "category": None,
+                "name": None,
+                "class": None, 
+                "type": None, 
+                "description": None, 
+                "meta": {
+                    "atk": None, 
+                    "def": None, 
+                    "cli": None
+                },
+                "effect": None
             },
         "resistances": ["water", "neutral"],
         "weaknesses": ["fire"]
     },
     {
         "id": 5,
-        "category": "PART",
+        "category": "part",
         "part_name": "Rubber Body", 
-        "slot": "BODY", 
+        "slot": "body", 
         "type": "rubber",
         "description": "A body made of very flexible rubber. It is very effective withstanding attacks without losing agility. If the fighter gets a full set of rubber parts, it unlocks a new special card.",
         "modifiers": {
@@ -191,15 +205,29 @@ parts_list = [
             "strength": -1,
             "agility": 2,
             "HP": 0 
+            },            
+            "special_card": {
+                "id": None, 
+                "category": None,
+                "name": None,
+                "class": None, 
+                "type": None, 
+                "description": None, 
+                "meta": {
+                    "atk": None, 
+                    "def": None, 
+                    "cli": None
+                },
+                "effect": None,
             },
         "resistances": ["iron"],
         "weaknesses": ["fire"]
     },
     {
         "id": 6,
-        "category": "PART",
+        "category": "part",
         "part_name": "Iron Leg", 
-        "slot": "LEG", 
+        "slot": "right_leg", 
         "type": "iron",
         "description": "Looks like a very thick nail, but who can tell? If the fighter gets a full set of iron parts, it gets an extra bonus.",
         "modifiers": {
@@ -207,15 +235,29 @@ parts_list = [
             "strength": 0,
             "agility": -2,
             "HP": 2 
+            },            
+            "special_card": {
+                "id": None, 
+                "category": None,
+                "name": None,
+                "class": None, 
+                "type": None, 
+                "description": None, 
+                "meta": {
+                    "atk": None, 
+                    "def": None, 
+                    "cli": None
+                },
+                "effect": None,
             },
         "resistances": ["water", "neutral"],
         "weaknesses": ["fire"]
     },
     {
         "id": 7,
-        "category": "PART",
+        "category": "part",
         "part_name": "Rubber Leg", 
-        "slot": "LEG", 
+        "slot": "left_leg", 
         "type": "rubber",
         "description": "A leg made of very flexible rubber. It increases agility but sacrifices power. If the fighter gets a full set of rubber parts, it unlocks a new special card.",
         "modifiers": {
@@ -223,12 +265,25 @@ parts_list = [
             "strength": -2,
             "agility": 3,
             "HP": 0 
+            },            
+            "special_card": {
+                "id": None, 
+                "category": None,
+                "name": None,
+                "class": None, 
+                "type": None, 
+                "description": None, 
+                "meta": {
+                    "atk": None, 
+                    "def": None, 
+                    "cli": None
+                },
+                "effect": None,
             },
         "resistances": ["iron"],
         "weaknesses": ["fire"]
     }
 ]
-
 # effects_dict = {
 #     "clinch": clinch,
 #     "double_damage": double_damage,
@@ -240,19 +295,36 @@ parts_list = [
 
 # Matriz de conflitos
 conflicts = {
-    "ATTACK": {
-        "GUARD": "GUARD",
-        "CLINCH": "ATTACK",
-        "ATTACK": "BOTH"
+    "attack": {
+        "guard": "guard",
+        "clinch": "attack",
+        "attack": "both"
     },
-    "GUARD": {
-        "ATTACK": "GUARD",
-        "CLINCH": "CLINCH",
-        "GUARD": "BOTH"
+    "guard": {
+        "attack": "guard",
+        "clinch": "clinch",
+        "guard": "both"
     },
-    "CLINCH": {
-        "GUARD": "CLINCH",
-        "ATTACK": "ATTACK",
-        "CLINCH": "BOTH"
+    "clinch": {
+        "guard": "clinch",
+        "attack": "attack",
+        "clinch": "both"
     }
+}
+
+# Matriz de resistências. Chave - Ataque, Valor - Resistência.
+resistances = {
+    "iron": ["water"],
+    "rubber": ["fire"],
+    "fire": ["water"],
+    "neutral":["rubber", "iron"]
+}
+
+# Matriz de fraquezas. Chave - Ataque, Valor - Elemento com fraqueza aquele ataque.
+weaknesses = {
+    "iron": ["rubber"],
+    "rubber": [],
+    "fire": ["iron", "rubber"],
+    "water": ["fire"],
+    "neutral": []
 }
