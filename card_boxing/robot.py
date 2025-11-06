@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Card Boxing Game
 
 # Imports
@@ -6,6 +5,7 @@
 from rich.console import Console
 from rich.table import Table
 from static import parts_list
+from ui_manager import UIManager
 
 # Dois robôs boxeadores se enfrentam no ringue. Cada robô realiza uma ação que é declarada por meio de cartas.
 # O jogo dura 3 rounds.
@@ -15,7 +15,7 @@ from static import parts_list
 # Criando primeiro a classe robô.
 class Robot:
     # Aqui o jogador define se ele quer um arquétipo de robô focado em ataque, defesa ou balanceado. Isso define os atributos base do robô.
-    def __init__(self, archetype, robot_name=None):
+    def __init__(self, archetype, ui_manager, robot_name=None):
         
         self.archetype = archetype
         
@@ -55,64 +55,15 @@ class Robot:
             "right_leg": None,
             "left_leg": None
         }
-        
-        self.robot_console = Console()
-        
-    # Método para criar a estrutura da tabela de partes
-    def _create_parts_table(self, title):
-        # Cria a tabela
-        parts_table = Table(title=title)
-        
-        #Cria as colunas da tabela
-        parts_table.add_column("ID")
-        parts_table.add_column("Part Name")        
-        parts_table.add_column("Slot")  
-        parts_table.add_column("Type")
-        parts_table.add_column("Description")
-        parts_table.add_column("Con")        
-        parts_table.add_column("Str")        
-        parts_table.add_column("Agi")
-        parts_table.add_column("HP")           
-        parts_table.add_column("Resistances")        
-        parts_table.add_column("Weaknesses")
-        
-        return parts_table
-    
-    # Método para formatar cada linha da tabela
-    def _add_part_row(self, parts_table, part):
-        
-        resistances_display = ", ".join(part["resistances"]) if part["resistances"] else "N/A"
-        weaknesses_display = ", ".join(part["weaknesses"]) if part["weaknesses"] else "N/A"
-        
-        parts_table.add_row(
-            str(part["id"]),
-            part["part_name"],
-            part["slot"],
-            part["type"],
-            part["description"],
-            str(part["modifiers"]["constitution"]),
-            str(part["modifiers"]["strength"]),
-            str(part["modifiers"]["agility"]),
-            str(part["modifiers"]["HP"]),
-            ", ".join(part["resistances"]) if part["resistances"] else "N/A",
-            ", ".join(part["weaknesses"]) if part["weaknesses"] else "N/A"
-        )
+
+        self.ui = ui_manager
         
     # Método para mostrar os atributos e status do robô.
     def showStats(self):
-        stats_table = Table(title=f"{self.robot_name} Robot Status")
-        stats_table.add_column("Con")
-        stats_table.add_column("Str")
-        stats_table.add_column("Agi")
-        stats_table.add_column("HP")
-        stats_table.add_column("Def")
-        stats_table.add_column("Atk")
-        stats_table.add_column("Cli")
-        stats_table.add_column("Resistances")
-        stats_table.add_column("Weaknesses")
+        stats_table = self.ui.createStatsTable(f"Robot {self.robot_name}'s Stats")
         
         # Escrevendo a tabela
-        stats_table.add_row(
+        stats_list = [
             str(self.constitution),
             str(self.strength),
             str(self.agility),
@@ -122,9 +73,9 @@ class Robot:
             str(self.clinch),
             ", ".join(self.resistances) if self.resistances else "N/A",
             ", ".join(self.weaknesses) if self.weaknesses else "N/A"
-        )
+            ]
         
-        self.robot_console.print(stats_table)
+        self.ui.addStatsRow(stats_table, stats_list)
 
     # Método para receber a peça de um slot.
     def getPartFromSlot(self, slot):
@@ -137,7 +88,7 @@ class Robot:
 
         # Se não encontrar uma parte, retorna False
         if found_part is None:
-            print(f"Slot '{slot}' is Empty.")
+            self.ui.printMessage(f"Slot '{slot}' is Empty.")
             return False
         # Se encontrar uma parte, retorna a parte.
         else:
@@ -145,13 +96,9 @@ class Robot:
             return found_part
         
     # Método para exibir os slots e retornar a peça 
-    def showSlots(self, slot=None):
+    def showSlots(self):
         
-        robot_slots = Table(title=f"Robot {self.robot_name} Slots")
-        robot_slots.add_column("Slot")
-        robot_slots.add_column("Part ID")
-        robot_slots.add_column("Part Name")
-        robot_slots.add_column("Part Type")
+        robot_slots = self.ui.createSlotsTable(title=f"Robot {self.robot_name} Slots")
         
         # Iterando sobre as partes (head, body, etc)
         for slot_name in self.slots:
@@ -167,15 +114,19 @@ class Robot:
                 part_id = "N/A"
                 part_name = "N/A"
                 part_type = "N/A"
-
-            robot_slots.add_row(
+                
+            # Cria a lista com as informações
+            robot_slots_list = [
                 slot_name,
                 part_id,
                 part_name,
                 part_type
-            )
-
-        self.robot_console.print(robot_slots)
+            ]
+            # Adiciona a lista na tabela
+            self.ui.addSlotsRow(robot_slots, robot_slots_list)
+        
+        # Printa a tabela
+        self.ui.console.print(robot_slots)
     
     # Colocando uma peça em um slot.
     def setSlot(self, slot, part):
@@ -184,7 +135,7 @@ class Robot:
             # Checando se o slot está vazio
             if self.checkSlotIfEmpty(slot) is False:
                 
-                print(f"Slot {slot} empty and available. Printing current robot stats.")
+                self.ui.printMessage(f"Slot {slot} empty and available. Printing current robot stats.")
                 
                 self.showStats()
                 
@@ -200,8 +151,8 @@ class Robot:
                 for i in part["weaknesses"]:
                     self.weaknesses.append(i)
                 
-                print(f"Part {part['part_name']} equipped in slot {slot}")
-                print(f"New stats after part was equipped:")
+                self.ui.printMessage(f"Part {part['part_name']} equipped in slot {slot}")
+                self.ui.printMessage(f"New stats after part was equipped:")
                 self.showStats()
                 
                 return self.showSlots()
@@ -209,10 +160,10 @@ class Robot:
             # Se o slot estiver ocupado
             else:
                 # Removendo os modificadores antigos
-                print(f"Slot {slot} already equipped with {self.slots[slot]['part_name']} part. Showing current stats.")
+                self.ui.printMessage(f"Slot {slot} already equipped with {self.slots[slot]['part_name']} part. Showing current stats.")
                 self.showStats()
                 
-                print("Removing currently equipped part.")
+                self.ui.printMessage("Removing currently equipped part.")
                 
                 old_part = self.slots[slot]
                 self.constitution -= old_part["modifiers"]["constitution"]
@@ -226,7 +177,7 @@ class Robot:
                 for i in old_part["weaknesses"]:
                     self.weaknesses.remove(i)
                 
-                print(f"Part {old_part['part_name']} removed.")
+                self.ui.printMessage(f"Part {old_part['part_name']} removed.")
                 
                 # Adicionando os modificadores nos atributos base do robô
                 self.slots[part["slot"]] = part
@@ -240,14 +191,14 @@ class Robot:
                 for i in part["weaknesses"]:
                     self.weaknesses.append(i)
                 
-                print(f"Part {part['part_name']} equipped in slot {slot}")
-                print(f"New stats after part was equipped:")
+                self.ui.printMessage(f"Part {part['part_name']} equipped in slot {slot}")
+                self.ui.printMessage(f"New stats after part was equipped:")
                 self.showStats()
                 
                 return self.showSlots()
        
         else:
-            print(f"The part {part['part_name']} is meant to be equipped in the {part['slot']} slot. Not in the {slot} slot.")
+            self.ui.printMessage(f"The part {part['part_name']} is meant to be equipped in the {part['slot']} slot. Not in the {slot} slot.")
     
     # Removendo uma peça de um slot.
     def cleanSlot(self, slot):
@@ -302,7 +253,7 @@ class Robot:
             title = f"All Parts"
         
         # Criando a tabela
-        parts_table = self._create_parts_table(title)    
+        parts_table = self.ui.createPartsTable(title)    
 
         # Filtragem das partes
         found_parts = False
@@ -320,7 +271,7 @@ class Robot:
             # Caso isso tenha sido passado por ambos os filtros. Criamos a variável
             found_parts = True
 
-            self._add_part_row(parts_table, part)
+            self.ui.addPartRow(parts_table, part)
             
             # Caso seja uma busca por ID único, a iteraçao acaba assim que encontra o ID
             if id_filter is not None:
@@ -328,133 +279,6 @@ class Robot:
         
         # Valores de saída
         if found_parts:
-            self.robot_console.print(parts_table)
+            self.ui.console.print(parts_table)
         else:
-            self.robot_console.print("No pieces found.")
-=======
-# Card Boxing Game
-
-# Dois robôs boxeadores se enfrentam no ringue. Cada robô realiza uma ação que é declarada por meio de cartas.
-# O jogo dura 3 rounds.
-# Cada round acontece em 3 turnos.
-# Cada turno é composto por uma ação de cada jogador e por suas consequências.
-
-# Criando primeiro a classe robô.
-class Robot:
-    # Aqui o jogador define se ele quer um arquétipo de robô focado em ataque, defesa ou balanceado. Isso define os atributos base do jogador.
-    def __init__(self, archetype):
-        if archetype == "ATK":
-            self.constitution = 6
-            self.strength = 10
-            self.agility = 8
-            self.HP = 6
-        elif archetype == "DEF":
-            self.constitution = 10
-            self.strength = 6
-            self.agility = 6
-            self.HP = 8
-        elif archetype == "BAL":
-            self.constitution = 7
-            self.strength = 7
-            self.agility = 7
-            self.HP = 7
-        self.defense = self.constitution + (0.6 * self.strength)
-        self.attack = self.strength + (0.6 * self.agility)
-        self.clinch = self.agility + (0.6 * self.strength)
-
-        self.part_list = []
-
-        self.resistances = []
-        self.weaknesses = []
-    
-    # Daqui pra baixo o jogador define as peças do robô que ele quer jogar, quando ele define a peça, o método atualiza os atributos.
-    def setHead(self, head_part):
-
-        if head_part["slot"] == "HEAD":
-
-            self.constitution += head_part["modifiers"]["constitution"]
-            self.strength += head_part["modifiers"]["strength"]
-            self.agility += head_part["modifiers"]["agility"]
-            self.HP += head_part["modifiers"]["HP"]
-            self.part_list.append(head_part)
-
-            for i in head_part["resistances"]:
-                self.resistances.append(i)
-            for i in head_part["weaknesses"]:
-                self.weaknesses.append(i)
-
-    def setBody(self, body_part):
-
-        if body_part["slot"] == "BODY":
-
-            self.constitution += body_part["modifiers"]["constitution"]
-            self.strength += body_part["modifiers"]["strength"]
-            self.agility += body_part["modifiers"]["agility"]
-            self.HP += body_part["modifiers"]["HP"]
-            self.part_list.append(body_part)
-
-            for i in body_part["resistances"]:
-                self.resistances.append(i)
-            for i in body_part["weaknesses"]:
-                self.weaknesses.append(i)
-
-    def setLArm(self, larm_part):
-
-        if larm_part["slot"] == "ARM":
-
-            self.constitution += larm_part["modifiers"]["constitution"]
-            self.strength += larm_part["modifiers"]["strength"]
-            self.agility += larm_part["modifiers"]["agility"]
-            self.HP += larm_part["modifiers"]["HP"]
-            self.part_list.append(larm_part)
-
-            for i in larm_part["resistances"]:
-                self.resistances.append(i)
-            for i in larm_part["weaknesses"]:
-                self.weaknesses.append(i)
-
-    def setRArm(self, rarm_part):
-
-        if rarm_part["slot"] == "ARM":
-
-            self.constitution += rarm_part["modifiers"]["constitution"]
-            self.strength += rarm_part["modifiers"]["strength"]
-            self.agility += rarm_part["modifiers"]["agility"]
-            self.HP += rarm_part["modifiers"]["HP"]
-            self.part_list.append(rarm_part)
-
-            for i in rarm_part["resistances"]:
-                self.resistances.append(i)
-            for i in rarm_part["weaknesses"]:
-                self.weaknesses.append(i)
-
-    def setLLeg(self, lleg_part):
-
-        if lleg_part["slot"] == "LEG":
-
-            self.constitution += lleg_part["modifiers"]["constitution"]
-            self.strength += lleg_part["modifiers"]["strength"]
-            self.agility += lleg_part["modifiers"]["agility"]
-            self.HP += lleg_part["modifiers"]["HP"]
-            self.part_list.append(lleg_part)
-
-            for i in lleg_part["resistances"]:
-                self.resistances.append(i)
-            for i in lleg_part["weaknesses"]:
-                self.weaknesses.append(i)
-
-    def letRLeg(self, rleg_part):
-
-        if rleg_part["slot"] == "LEG":
-
-            self.constitution += rleg_part["modifiers"]["constitution"]
-            self.strength += rleg_part["modifiers"]["strength"]
-            self.agility += rleg_part["modifiers"]["agility"]
-            self.HP += rleg_part["modifiers"]["HP"]
-            self.part_list.append(rleg_part)
-
-            for i in rleg_part["resistances"]:
-                self.resistances.append(i)
-            for i in rleg_part["weaknesses"]:
-                self.weaknesses.append(i)
->>>>>>> 3933bfcd65d48d4548136038859706bdf05ff8ed
+            self.ui.printMessage("No pieces found.")
