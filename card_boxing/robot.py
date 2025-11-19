@@ -43,6 +43,9 @@ class Robot:
         self.attack = self.strength + (0.6 * self.agility)
         self.clinch = self.agility + (0.6 * self.strength)
 
+        # Calcular o quanto de vida o jogador vai recuperar quando se levantar
+        self.recover_modifier = 0
+
         self.resistances = []
         self.weaknesses = []
         

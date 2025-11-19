@@ -43,8 +43,6 @@ class UIManager:
 #             ", ".join(part["weaknesses"]) if part["weaknesses"] else "N/A"
         )
 
-        self.console.print(cards_table)
-
     # Método para criar a estrutura da tabela de status atuais
     @staticmethod
     def createCurrentStatsTable(title):

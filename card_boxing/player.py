@@ -25,6 +25,11 @@ class Player:
         # Mão do jogador
         self.hand = []
 
+        # Número máximo de cartas na mão
+        self.max_hand_slots = 3
+        # Atributo privado com o mínimo de uma carta na mão
+        self._max_hand_slots: int = 1
+
         # Deck completo do jogador
         self.game_deck = []
         
@@ -40,6 +45,33 @@ class Player:
         self.initial_attack = self.robot.attack
         self.initial_clinch = self.robot.clinch
 
+        # Contador de Quedas Totais
+        self.fall_counter = 0
+
+        # Contador de Quedas por Round - (Vai ser resetado com o round)
+        self.falls = 0
+        
+        # Modificador de invencibilidade
+        self.is_invincible = False
+        
+        # Modificador de compra de cartas
+        self.draw_blocked = False
+
+    # Permite ler o valor dos slots
+    @property 
+    def max_hand_slots(self) -> int:
+        return self._max_hand_slots
+    
+    # Valida que o valor do atributo nunca seja menor do que 1
+    @max_hand_slots.setter
+    def max_hand_slots(self, value: int):
+        
+        if value < 1:
+            self.ui.printMessage(f"Minimum slots for player {self.name}'s hand: 1 Slot")
+            self._max_hand_slots = 1
+        else:
+            self._max_hand_slots = value
+            
     # Adiciona as cartas especiais, caso existam
     def addSpecialCards(self):
         for part in self.robot.slots.values():
@@ -64,8 +96,13 @@ class Player:
             self.ui.addCardRow(deck_table, card)
         
         self.ui.console.print(deck_table)
-        
+        # Retorna o game_deck já com todas as cartas inseridas
         return self.game_deck
+    
+    # Checa se o game deck tem n cartas possíveis para compra
+    def checkGameDeck(self, quantity):
+        # Retorna True se existe mais cartas para serem compradas no game deck do que o que foi pedido
+        return len(self.game_deck) >= quantity
     
     # Embaralha o deck
     def shuffleDeck(self):
@@ -73,12 +110,31 @@ class Player:
 
     # Compra n cartas
     def getCard(self, num_of_cards):
+        # Checagem se o game deck tem n cartas disponíveis
+        if not self.checkGameDeck(num_of_cards):
+            # Se não tiver, ele vai transformar num_of_cards na mesma quantidade de cards restantes.
+            num_of_cards = len(self.game_deck)
+            # Avisa quantas cartas estão disponíveis para compra no caso do game deck ser insuficiente.
+            self.ui.printMessage(f"Only {num_of_cards} cards available. ")
+        
+        # Compra de cartas
+        cards_drawn = 0
+        while cards_drawn < num_of_cards:
+            # Checa se a mão está cheia
+            if len(self.hand) >= self.max_hand_slots:
+                self.ui.printMessage(f"Player {self.name}'s hand is full!'")
+                break
+                
+            # Checa se o deck ficou vazio durante a compra
+            if not self.game_deck:
+                break
 
-        for i in range(num_of_cards):
-            # Colocando a carta na mão do jogador
-            self.hand.append(self.game_deck[i])
-            # Removendo a carta do deck para compra
-            self.game_deck.pop(i)
+            # Compra a carta do topo do baralho (índice 0)
+            card = self.game_deck.pop(0)
+            self.hand.append(card)
+            
+            cards_drawn += 1
+        
         return True
 
     # Mostra a mão
@@ -89,12 +145,27 @@ class Player:
             self.ui.addCardRow(hand_table,i)
             
         self.ui.console.print(hand_table)
+
+    # Mostra o cemitério
+    def showGraveyard(self):
+        graveyard_table = self.ui.createCardsTable(f"Player {self.name}'s Graveyard")
+        
+        for i in self.graveyard:
+            self.ui.addCardRow(graveyard_table,i)
+            
+        self.ui.console.print(graveyard_table)
             
     # Escolhe a carta
-    def playCard(self):
+    def chooseCard(self):
         self.showHand()
-        played_card = int(input("Choose a card:"))
-        return self.hand[played_card]
+        chosen_card = int(input("Choose a card:"))
+        return self.hand[chosen_card]
+    
+    def playCard(self):
+        chosen_card = self.chooseCard()
+        self.hand.remove(chosen_card)
+        self.graveyard.append(chosen_card)
+        return chosen_card
     
     # Mostra o status atual
     def showCurrentStatus(self):
@@ -113,3 +184,4 @@ class Player:
         ]
 
         self.ui.addCurrentStatsRow(current_stats_table, current_stats_list)
+        

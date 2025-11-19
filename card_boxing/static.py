@@ -1,3 +1,5 @@
+from effects import *
+
 # Tudo o que é estático (cartas, partes, etc) vai ficar armazenado aqui.
 card_list = [
     
@@ -39,7 +41,7 @@ card_list = [
             "atk": 0, 
             "def": 0, 
             "cli": 1},
-        "effect": "clinch"
+        "effect": ClinchEffect
     },
 
         # Criando as cartas de ação especializadas
@@ -54,7 +56,7 @@ card_list = [
             "atk": 2, 
             "def": 0, 
             "cli": 0},
-        "effect": "double_damage"
+        "effect": DoubleDamageEffect
     },
     {
         "id": 5, 
@@ -67,7 +69,7 @@ card_list = [
             "atk": 0, 
             "def": 2, 
             "cli": 2},
-        "effect": "invincible"
+        "effect": InvincibleEffect
     }
 ]
 
@@ -98,7 +100,7 @@ parts_list = [
                     "def": 1, 
                     "cli": 0
                 },
-                "effect": "stop_hitting_yourself"
+                "effect": StopHittingYourselfEffect
             },
         "resistances": ["water", "neutral"],
         "weaknesses": ["fire"]
@@ -128,7 +130,7 @@ parts_list = [
                     "def": 1, 
                     "cli": 0
                 },
-                "effect": "white_hot_fire_punch"
+                "effect": WhiteHotFirePunchEffect
             },
         "resistances": [],
         "weaknesses": ["water"]
@@ -158,7 +160,7 @@ parts_list = [
                     "def": 0, 
                     "cli": 0
                 },
-                "effect": "omniclinch"
+                "effect": OmniclinchEffect
             },
         "resistances": ["iron"],
         "weaknesses": ["fire"]
@@ -284,36 +286,32 @@ parts_list = [
         "weaknesses": ["fire"]
     }
 ]
-# effects_dict = {
-#     "clinch": clinch,
-#     "double_damage": double_damage,
-#     "invincible": invincible,
-#     "stop_hitting_yourself": stop_hitting_yourself,
-#     "white_hot_fire_punch": white_hot_fire_punch,
-#     "omniclinch": omniclinch
-# }
 
 # Matriz de conflitos
-conflicts = {
-    "attack": {
-        "guard": "guard",
-        "clinch": "attack",
-        "attack": "both"
-    },
-    "guard": {
-        "attack": "guard",
-        "clinch": "clinch",
-        "guard": "both"
-    },
-    "clinch": {
-        "guard": "clinch",
-        "attack": "attack",
-        "clinch": "both"
-    }
+conflicts_table = {
+    # (P1_class, P2_class): {'winner': 'p1'/'p2'/'draw', 'loser': 'p2'/'p1'/'draw', 'effect': 'block'/'clash'/'none'/'miss'}
+    
+    # 1. Ataque (attack)
+    ('attack', 'guard'): {'winner': 'p2', 'loser': 'p1', 'effect': 'block'}, # Guarda > Ataque (Bloqueado)
+    ('guard', 'attack'): {'winner': 'p1', 'loser': 'p2', 'effect': 'block'}, # Guarda > Ataque (Bloqueado)
+    ('attack', 'clinch'): {'winner': 'p1', 'loser': 'p2', 'effect': 'none'}, # Ataque > Clinch (Ataque simples)
+    ('clinch', 'attack'): {'winner': 'p2', 'loser': 'p1', 'effect': 'none'}, # Ataque > Clinch (Ataque simples)
+    ('attack', 'attack'): {'winner': 'draw', 'loser': 'draw', 'effect': 'clash'}, # Ataque vs Ataque (Double Hit)
+
+    # 2. Clinch (clinch)
+    ('clinch', 'guard'): {'winner': 'p1', 'loser': 'p2', 'effect': 'none'}, # Clinch > Guarda (Clinch simples)
+    ('guard', 'clinch'): {'winner': 'p2', 'loser': 'p1', 'effect': 'none'}, # Clinch > Guarda (Clinch simples)
+    ('clinch', 'clinch'): {'winner': 'draw', 'loser': 'draw', 'effect': 'clinch_effect'}, # Clinch vs Clinch (Ambos ativam)
+    
+    # 3. Defesa/Guarda (guard)
+    ('guard', 'guard'): {'winner': 'draw', 'loser': 'draw', 'effect': 'none'}, # Guarda vs Guarda (Nada acontece)
+    
+    # Adicione a lógica de "Esquiva" se houver (Ex: 'dodge')
+    # ('attack', 'dodge'): {'winner': 'p2', 'loser': 'p1', 'effect': 'miss'}, 
 }
 
 # Matriz de resistências. Chave - Ataque, Valor - Resistência.
-resistances = {
+resistances_matrix = {
     "iron": ["water"],
     "rubber": ["fire"],
     "fire": ["water"],
@@ -321,7 +319,7 @@ resistances = {
 }
 
 # Matriz de fraquezas. Chave - Ataque, Valor - Elemento com fraqueza aquele ataque.
-weaknesses = {
+weaknesses_matrix = {
     "iron": ["rubber"],
     "rubber": [],
     "fire": ["iron", "rubber"],
