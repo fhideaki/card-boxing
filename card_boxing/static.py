@@ -289,25 +289,15 @@ parts_list = [
 
 # Matriz de conflitos
 conflicts_table = {
-    # (P1_class, P2_class): {'winner': 'p1'/'p2'/'draw', 'loser': 'p2'/'p1'/'draw', 'effect': 'block'/'clash'/'none'/'miss'}
-    
-    # 1. Ataque (attack)
-    ('attack', 'guard'): {'winner': 'p2', 'loser': 'p1', 'effect': 'block'}, # Guarda > Ataque (Bloqueado)
-    ('guard', 'attack'): {'winner': 'p1', 'loser': 'p2', 'effect': 'block'}, # Guarda > Ataque (Bloqueado)
-    ('attack', 'clinch'): {'winner': 'p1', 'loser': 'p2', 'effect': 'none'}, # Ataque > Clinch (Ataque simples)
-    ('clinch', 'attack'): {'winner': 'p2', 'loser': 'p1', 'effect': 'none'}, # Ataque > Clinch (Ataque simples)
-    ('attack', 'attack'): {'winner': 'draw', 'loser': 'draw', 'effect': 'clash'}, # Ataque vs Ataque (Double Hit)
-
-    # 2. Clinch (clinch)
-    ('clinch', 'guard'): {'winner': 'p1', 'loser': 'p2', 'effect': 'none'}, # Clinch > Guarda (Clinch simples)
-    ('guard', 'clinch'): {'winner': 'p2', 'loser': 'p1', 'effect': 'none'}, # Clinch > Guarda (Clinch simples)
-    ('clinch', 'clinch'): {'winner': 'draw', 'loser': 'draw', 'effect': 'clinch_effect'}, # Clinch vs Clinch (Ambos ativam)
-    
-    # 3. Defesa/Guarda (guard)
-    ('guard', 'guard'): {'winner': 'draw', 'loser': 'draw', 'effect': 'none'}, # Guarda vs Guarda (Nada acontece)
-    
-    # Adicione a lógica de "Esquiva" se houver (Ex: 'dodge')
-    # ('attack', 'dodge'): {'winner': 'p2', 'loser': 'p1', 'effect': 'miss'}, 
+    ('attack', 'guard'): 'p2_wins', 
+    ('guard', 'attack'): 'p1_wins', 
+    ('attack', 'clinch'): 'p1_wins', 
+    ('clinch', 'attack'): 'p2_wins', 
+    ('attack', 'attack'): 'tie', 
+    ('clinch', 'guard'): 'p1_wins', 
+    ('guard', 'clinch'): 'p2_wins', 
+    ('clinch', 'clinch'): 'tie', 
+    ('guard', 'guard'): 'tie',
 }
 
 # Matriz de resistências. Chave - Ataque, Valor - Resistência.

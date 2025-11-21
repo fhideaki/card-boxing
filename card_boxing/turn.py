@@ -1,3 +1,5 @@
+from effects import *
+
 # Criando a classe Game - Ela vai iniciar uma partida
 class Turn:
     def __init__(self, player1, player2, gamejudge, damagecalculator):
@@ -65,14 +67,19 @@ class Turn:
     # Terceira fase - Executando o conflito entre as cartas
     def execute_third_phase(self):
         # As cartas são colocadas em análise.
+            # Criando uma instância da classe Effect
         effects = Effect()
+
+            # Criando as cartas que foram jogadas de acordo com o que o juiz registrou
         card_player1 = self.gamejudge.current_turn_actions[self.player1]
         card_player2 = self.gamejudge.current_turn_actions[self.player2]
         
+            # Instanciando os efeitos das cartas em jogo
         card_player1_effect = card_player1['effect']()
         card_player2_effect = card_player2['effect']()
         
-        
+            # Analisando o resultado do conflito entre as classes das cartas
+        card_conflict_result = 
             # Primeira análise condicional de efeitos especiais
             
             

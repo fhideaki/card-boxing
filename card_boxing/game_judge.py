@@ -2,7 +2,7 @@
 from player import Player
 from deck import Deck
 from robot import Robot
-from static import conflicts
+from static import conflicts_table
 from ui_manager import UIManager
 from typing import Dict, Any, Tuple, List, TYPE_CHECKING
 import random
@@ -108,11 +108,14 @@ class GameJudge:
         key = (class_p1, class_p2)
         
         # Busca o resultado na tabela
-        result = self.conflicts.get(key)
+        result = conflicts_table.get(key)
         
-        if result:
-            self.log_message(f"{class_p1} vs {class_p2} -> Winner: {result['winner']}, Effect: {result['effect']}")
-            return result
+        return result
+    
+    def return_conflict_variables(self, player1, player2, card_p1, card_p2, result):
+        # Se o resultado for uma vitória do Player 1
+        if result == "p1_wins":
+            
 
     # Método que bloqueia a compra de cartas por 1 turno (efeito clinch)
     def set_draw_lock(self, player, turns):
