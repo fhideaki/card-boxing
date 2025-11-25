@@ -10,11 +10,7 @@ card_list = [
         "name": "Simple Guard", 
         "class": "guard", 
         "type": "neutral", 
-        "description": "Simple Guard. Protects against Attack from opponent.It still can be Clinched", 
-        "meta": {
-            "atk": 0,
-            "def": 1, 
-            "cli": 0},
+        "description": "Simple Guard. Protects against Attack from opponent.It still can be Clinched",
         "effect": None
     },
     {   
@@ -23,11 +19,7 @@ card_list = [
         "name": "Simple Attack", 
         "class":"attack", 
         "type":"neutral", 
-        "description": "Simple Attack. Does damage even if the opponent Attacks or Clinches. It can be blocked by Simple Guard.", 
-        "meta": {
-            "atk": 1, 
-            "def": 0, 
-            "cli": 0},
+        "description": "Simple Attack. Does damage even if the opponent Attacks or Clinches. It can be blocked by Simple Guard.",
         "effect": None
     },
     {
@@ -36,11 +28,7 @@ card_list = [
         "name": "Clinch", 
         "class": "clinch", 
         "type": "neutral", 
-        "description": "Clinch, holds the opponent fighter. Vulnerable to opponents attacks. Strong against opponents guards.", 
-        "meta":{
-            "atk": 0, 
-            "def": 0, 
-            "cli": 1},
+        "description": "Clinch, holds the opponent fighter. Vulnerable to opponents attacks. Strong against opponents guards.",
         "effect": ClinchEffect
     },
 
@@ -51,11 +39,7 @@ card_list = [
         "name": "Strong Attack", 
         "class": "attack", 
         "type": "neutral", 
-        "description": "Strong Attack. If the opponent clinches, it does double damage. Does regular damage against Simple Guard.", 
-        "meta":{
-            "atk": 2, 
-            "def": 0, 
-            "cli": 0},
+        "description": "Strong Attack. If the opponent clinches, it does double damage. Does regular damage against Simple Guard.",
         "effect": DoubleDamageEffect
     },
     {
@@ -64,11 +48,7 @@ card_list = [
         "name": "Special Guard", 
         "class": "guard", 
         "type": "neutral", 
-        "description": "Special Guard. Blocks completely any attack. Invulnerable to clinches.", 
-        "meta": {
-            "atk": 0, 
-            "def": 2, 
-            "cli": 2},
+        "description": "Special Guard. Blocks completely any attack. Invulnerable to clinches.",
         "effect": InvincibleEffect
     }
 ]
@@ -94,12 +74,7 @@ parts_list = [
                 "name": "Iron Guard",
                 "class": "guard", 
                 "type": "iron", 
-                "description": "The Iron Guard is so strong that it returns some damage to the oponent if they choose to attack.", 
-                "meta": {
-                    "atk": 1, 
-                    "def": 1, 
-                    "cli": 0
-                },
+                "description": "The Iron Guard is so strong that it returns some damage to the oponent if they choose to attack.",
                 "effect": StopHittingYourselfEffect
             },
         "resistances": ["water", "neutral"],
@@ -124,12 +99,7 @@ parts_list = [
                 "name": "Fiery Punch",
                 "class": "attack", 
                 "type": "fire", 
-                "description": "Attack that leaves the opponent with a burn. If it lands, the opponent loses one slot of his hand for the end of the round.", 
-                "meta": {
-                    "atk": 1, 
-                    "def": 1, 
-                    "cli": 0
-                },
+                "description": "Attack that leaves the opponent with a burn. If it lands, the opponent loses one slot of his hand for the end of the round.",
                 "effect": WhiteHotFirePunchEffect
             },
         "resistances": [],
@@ -154,12 +124,7 @@ parts_list = [
                 "name": "Rubber Attack",
                 "class": "attack", 
                 "type": "rubber", 
-                "description": "Hits weakly and automatically clinches if it lands.", 
-                "meta": {
-                    "atk": 1, 
-                    "def": 0, 
-                    "cli": 0
-                },
+                "description": "Hits weakly and automatically clinches if it lands.",
                 "effect": OmniclinchEffect
             },
         "resistances": ["iron"],
@@ -184,12 +149,7 @@ parts_list = [
                 "name": None,
                 "class": None, 
                 "type": None, 
-                "description": None, 
-                "meta": {
-                    "atk": None, 
-                    "def": None, 
-                    "cli": None
-                },
+                "description": None,
                 "effect": None
             },
         "resistances": ["water", "neutral"],
@@ -214,12 +174,7 @@ parts_list = [
                 "name": None,
                 "class": None, 
                 "type": None, 
-                "description": None, 
-                "meta": {
-                    "atk": None, 
-                    "def": None, 
-                    "cli": None
-                },
+                "description": None,
                 "effect": None,
             },
         "resistances": ["iron"],
@@ -244,12 +199,7 @@ parts_list = [
                 "name": None,
                 "class": None, 
                 "type": None, 
-                "description": None, 
-                "meta": {
-                    "atk": None, 
-                    "def": None, 
-                    "cli": None
-                },
+                "description": None,
                 "effect": None,
             },
         "resistances": ["water", "neutral"],
@@ -274,12 +224,7 @@ parts_list = [
                 "name": None,
                 "class": None, 
                 "type": None, 
-                "description": None, 
-                "meta": {
-                    "atk": None, 
-                    "def": None, 
-                    "cli": None
-                },
+                "description": None,
                 "effect": None,
             },
         "resistances": ["iron"],
@@ -289,15 +234,15 @@ parts_list = [
 
 # Matriz de conflitos
 conflicts_table = {
-    ('attack', 'guard'): 'p2_wins', 
-    ('guard', 'attack'): 'p1_wins', 
-    ('attack', 'clinch'): 'p1_wins', 
-    ('clinch', 'attack'): 'p2_wins', 
-    ('attack', 'attack'): 'tie', 
-    ('clinch', 'guard'): 'p1_wins', 
-    ('guard', 'clinch'): 'p2_wins', 
-    ('clinch', 'clinch'): 'tie', 
-    ('guard', 'guard'): 'tie',
+    ('attack', 'guard'): {'winner':'p2','winning_class':'guard'}, 
+    ('guard', 'attack'): {'winner':'p1','winning_class':'guard'}, 
+    ('attack', 'clinch'): {'winner':'p1','winning_class':'attack'},
+    ('clinch', 'attack'): {'winner':'p2','winning_class':'attack'},
+    ('attack', 'attack'): {'winner':'tie','winning_class':'attack'},
+    ('clinch', 'guard'): {'winner':'p1','winning_class':'clinch'},
+    ('guard', 'clinch'): {'winner':'p2','winning_class':'clinch'},
+    ('clinch', 'clinch'): {'winner':'tie','winning_class':'clinch'},
+    ('guard', 'guard'): {'winner':'tie','winning_class':'none'},
 }
 
 # Matriz de resistências. Chave - Ataque, Valor - Resistência.

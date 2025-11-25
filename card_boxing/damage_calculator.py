@@ -32,7 +32,7 @@ class DamageCalculator:
         return resistances_multiplier
     
     @staticmethod
-    def get_base_damage(attacker_robot, weaknesses_multiplier, resistances_multiplier, special_multiplier):
+    def get_base_damage(attacker_robot, weaknesses_multiplier, resistances_multiplier):
         base_atk = attacker_robot.attack
         base_damage = base_atk * (weaknesses_multiplier - resistances_multiplier)
         return base_damage

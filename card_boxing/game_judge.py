@@ -9,9 +9,12 @@ import random
 
 # Criando uma classe "juiz" para conferir os status do deck e do robô de cada jogador.
 class GameJudge:
-    def __init__(self, ui_manager: UIManager):
+    def __init__(self, ui_manager: UIManager, damage_calculator):
         # Inicializando o gerenciador de UI
         self.ui = ui_manager
+
+        # Inicializando a calculadora de danos
+        self.damage_calculator = damage_calculator
 
         # Dados temporários (renovados por turno)
         self.current_turn_actions = {}
@@ -97,6 +100,10 @@ class GameJudge:
         player.is_invincible = False
         self.log_message(f"Judge: {player.name} invulnerability disabled!")
 
+        # Método para retornar True se estiver invulnerável
+    def is_invulnerable(self, player):
+        return player.is_invincible
+
         # Método para determinar quem ganha a disputa das cartas
     def determine_conflict(self, card_p1: Dict[str, Any], card_p2: Dict[str, Any]) -> Dict[str, Any]:
         
@@ -112,30 +119,48 @@ class GameJudge:
         
         return result
     
-    def return_conflict_variables(self, player1, player2, card_p1, card_p2, result):
-        # Se o resultado for uma vitória do Player 1
-        if result == "p1_wins":
-            
+    def return_conflict_result(self, player1, player2, card_p1, card_p2, result):
+        # Essa função precisa retornar todas as variáveis já com os cálculos prontos para o turno continuar.
+        # Estágio 0 - Definindo quem é o ganhador e quem é o perdedor do conflito.
+        if result['winner'] == 'p1':
+            winner = player1
+            loser = player2
+            winning_card = card_p1
+            losing_card = card_p2
+            winning_class = card_p1['class']
+            losing_class = card_p2['class']
+            winning_effect = card_p1.effect()
+            losing_effect = card_p2.effect()
+
+        elif result['winner'] == 'p2':
+            winner = player2
+            loser = player1
+            winning_card = card_p2
+            losing_card = card_p1
+            winning_class = card_p2['class']
+            losing_class = card_p1['class']
+            winning_effect = card_p2.effect()
+            losing_effect = card_p1.effect()
 
     # Método que bloqueia a compra de cartas por 1 turno (efeito clinch)
     def set_draw_lock(self, player, turns):
         player.draw_blocked = True
         
     # Método que bloqueia a compra de cartas por 1 turno (efeito clinch)
-    def reset_draw_lock(self, player, turns):
+    def reset_draw_lock(self, player):
         player.draw_blocked = False
 
-        # Método para aplicar dano
-    def apply_damage(self, player, damage):
-        # Checa invulnerabilidade
-        if player.is_invincible:
-            self.log_message(f"Judge: {player.name} is invulnerable, no damage applied.")
-            return True
+    #     # Método para aplicar dano
+    # def apply_damage(self, player, damage):
+    #     # Checa invulnerabilidade
+    #     if player.is_invincible:
+    #         self.log_message(f"Judge: {player.name} is invulnerable, no damage applied.")
+    #         return True
 
-        # Aplicando dano ao robô
-        if damage > 0:
-            player.initial_HP -= damage
-            self.log_message(f"Judge: {player.name} received {damage} damage! HP left: {player.initial_HP}")
+    #     # Aplicando dano ao robô
+    #     if damage > 0:
+    #         player.initial_HP -= damage
+    #         self.log_message(f"Judge: {player.name} received {damage} damage! HP left: {player.initial_HP}")
 
         # Método para dropar um slot da mão do jogador
     def drop_hand_slot(self, player, num_slots):

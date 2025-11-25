@@ -1,4 +1,7 @@
 from effects import *
+from player import Player
+from game_judge import GameJudge
+from damage_calculator import DamageCalculator
 
 # Criando a classe Game - Ela vai iniciar uma partida
 class Turn:
@@ -79,7 +82,8 @@ class Turn:
         card_player2_effect = card_player2['effect']()
         
             # Analisando o resultado do conflito entre as classes das cartas
-        card_conflict_result = 
+        card_conflict_result = self.gamejudge.determine_conflict(card_player1, card_player2)
+        
             # Primeira análise condicional de efeitos especiais
             
             
