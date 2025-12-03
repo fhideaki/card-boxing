@@ -43,7 +43,7 @@ class InvincibleEffect(Effect):
     def apply_post_damage_effect(self, final_damage, attacker, target, judge, calculator):
         judge.log_message(f"{attacker.name} cannot be damaged or clinched.")
 
-        judge.set_invulnerability(attacker, self.param)
+        judge.set_invulnerability(attacker)
 
 class StopHittingYourselfEffect(Effect):
     def __init__(self):

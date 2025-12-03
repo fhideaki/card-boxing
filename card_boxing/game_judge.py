@@ -12,6 +12,7 @@ class GameJudge:
     def __init__(self, ui_manager: UIManager, damage_calculator):
         # Inicializando o gerenciador de UI
         self.ui = ui_manager
+        self.ui.printMessage('Judge created.')
 
         # Inicializando a calculadora de danos
         self.damage_calculator = damage_calculator
@@ -118,32 +119,85 @@ class GameJudge:
         result = conflicts_table.get(key)
         
         return result
-    
+
+    # Método que retorna um dicionário com as informações do conflito antes de calcular dano e com base no resultado das cartas.    
     def return_conflict_result(self, player1, player2, card_p1, card_p2, result):
-        # Essa função precisa retornar todas as variáveis já com os cálculos prontos para o turno continuar.
-        # Estágio 0 - Definindo quem é o ganhador e quem é o perdedor do conflito.
+
+        winner = None
+        loser = None
+
         if result['winner'] == 'p1':
+            type = 'win'
             winner = player1
             loser = player2
-            winning_card = card_p1
-            losing_card = card_p2
-            winning_class = card_p1['class']
-            losing_class = card_p2['class']
-            winning_effect = card_p1.effect()
-            losing_effect = card_p2.effect()
 
         elif result['winner'] == 'p2':
+            type = 'win'
             winner = player2
             loser = player1
-            winning_card = card_p2
-            losing_card = card_p1
-            winning_class = card_p2['class']
-            losing_class = card_p1['class']
-            winning_effect = card_p2.effect()
-            losing_effect = card_p1.effect()
+
+        elif result['winner'] == 'tie':
+            if result['winning_class'] == 'attack':
+                type = 'attack_draw'
+            elif result['winning_class'] == 'clinch':
+                type = 'clinch_draw'
+            elif result['winning_class'] == 'guard':
+                type = 'guard_draw'
+
+        result = {
+            'type': type,
+
+            'winner': winner,
+            'loser': loser,
+
+            'p1': {
+                'player': player1,
+                'card': card_p1,
+                'class': card_p1['class'],
+                'effect': card_p1['effect'],
+                'speed': player1.initial_agility
+            },
+
+            'p2': {
+                'player': player2,
+                'card': card_p2,
+                'class': card_p2['class'],
+                'effect': card_p2['effect'],
+                'speed': player2.initial_agility
+            }
+        }
+
+        return result
+    
+    # Método para resolver o conflito de acordo com o dicionário passado como argumento
+    def resolve_conflict_after_result(self, conflict_result):
+        # Variáveis iniciais
+        type = conflict_result['type']
+
+        # Dicionário dos jogadores
+        p1 = conflict_result['p1']
+        p2 = conflict_result['p2']
+
+        # Acesso aos objetos Player
+        player1 = p1['player']
+        player2 = p2['player']
+
+        # No caso de não empate
+        winner = conflict_result['winner']
+        loser = conflict_result[ 'loser']
+
+        # No caso de vitória
+        if type == 'win':
+            self.resolve_win(conflict_result)
+        elif type == 'attack_draw':
+            self.resolve_attack_draw(conflict_result)
+        elif type == 'clinch_draw':
+            self.resolve_clinch_draw(conflict_result)
+        elif type == 'guard_draw':
+            self.resolve_guard_draw(conflict_result)
 
     # Método que bloqueia a compra de cartas por 1 turno (efeito clinch)
-    def set_draw_lock(self, player, turns):
+    def set_draw_lock(self, player):
         player.draw_blocked = True
         
     # Método que bloqueia a compra de cartas por 1 turno (efeito clinch)
@@ -214,6 +268,25 @@ class GameJudge:
         
         raise SystemExit("Game Over, Thanks for playing!")
         
+    # Método para verificar se o jogador caiu, e se ele consegue se levantar
+    def player_down(self, attacker, target):
+        if self.is_knocked_out(target):
+            print(f'{target.name} is down!')
+
+            if self.is_incapacitaded(target):
+                self.declare_winner(attacker, "K.O.")
+            else:
+                ko_cost = self.apply_ko_cost(target)
+                print(f'Cost to get up {ko_cost}')
+                if self.apply_ko(target, ko_cost):
+                    self.declare_winner(attacker, "K.O.")
+                else:
+                    if not self.discard_from_deck(target, ko_cost):
+                        self.declare_winner(attacker, "K.O.")
+                    else: 
+                        self.discard_from_deck(target, ko_cost)
+        return
+
     # Método para resetar o contador de quedas
     def reset_player_falls(self, player):
         player.falls = 0
@@ -227,6 +300,39 @@ class GameJudge:
         # Retorna True se o jogador acumular 3 quedas no round.
         return player.falls == num_falls
     
+    # Método para descartar tanto da mão quanto do deck
+    def discard_from_deck(self, player, num_cards):
+        total_cards = len(player.game_deck) + len(player.hand)
+
+        # Se já não há cartas o suficiente para serem descartadas
+        if num_cards >= total_cards:
+            self.log_message(f"Player {player.name} does not have enough cards to discard.")
+            return False
+        
+        # Descartando primeiro do deck
+        cards_to_discard_from_deck = num_cards
+        print(f'Cartas a descartar do deck {cards_to_discard_from_deck}')
+
+        for card in range(cards_to_discard_from_deck):
+            random_card = random.choice(player.game_deck)
+            player.game_deck.remove(random_card)
+            player.graveyard.append(random_card)
+
+        # Descarte da mão se necessário
+        remaining_to_discard = num_cards - cards_to_discard_from_deck
+
+        cards_to_discard_from_hand = 0
+
+        if remaining_to_discard > 0:
+            cards_to_discard_from_hand = remaining_to_discard
+
+            for card in range(cards_to_discard_from_hand):
+                random_card = random.choice(player.hand)
+                player.hand.remove(random_card)
+                player.graveyard.append(random_card)
+        self.log_message(f"Player {player.name} discarded {cards_to_discard_from_deck} cards from deck and {cards_to_discard_from_hand} cards from hand.")
+        return True    
+        
     # Método para retirar uma carta da mão do jogador
     def discard_from_hand(self, player, num_cards):
         if num_cards < len(player.hand):

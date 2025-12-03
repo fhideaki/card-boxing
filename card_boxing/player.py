@@ -27,8 +27,6 @@ class Player:
 
         # Número máximo de cartas na mão
         self.max_hand_slots = 3
-        # Atributo privado com o mínimo de uma carta na mão
-        self._max_hand_slots: int = 1
 
         # Deck completo do jogador
         self.game_deck = []
@@ -56,21 +54,6 @@ class Player:
         
         # Modificador de compra de cartas
         self.draw_blocked = False
-
-    # Permite ler o valor dos slots
-    @property 
-    def max_hand_slots(self) -> int:
-        return self._max_hand_slots
-    
-    # Valida que o valor do atributo nunca seja menor do que 1
-    @max_hand_slots.setter
-    def max_hand_slots(self, value: int):
-        
-        if value < 1:
-            self.ui.printMessage(f"Minimum slots for player {self.name}'s hand: 1 Slot")
-            self._max_hand_slots = 1
-        else:
-            self._max_hand_slots = value
             
     # Adiciona as cartas especiais, caso existam
     def addSpecialCards(self):
