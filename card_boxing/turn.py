@@ -14,6 +14,8 @@ class Turn:
         self.gamejudge.create_score(self.player1, self.player2)
         print('Turn created.')
 
+
+
     def game_start(self):
         # Embaralhar o deck dos jogadores
         print('-----------------------Game Start-----------------------')
@@ -193,7 +195,7 @@ class Turn:
             
         # No caso de um ataque ganhar
         elif conflict_result['winning_class'] == 'attack':
-            # Ataque contra ataque
+            # Ataque contra clinch
             print('Ataque contra ataque')
             if p1_current_action == 'attack' and p2_current_action == 'clinch':
                 print('P1 Ataca')

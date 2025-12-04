@@ -168,3 +168,6 @@ class Player:
 
         self.ui.addCurrentStatsRow(current_stats_table, current_stats_list)
         
+        # Recupera vida
+    def showCurrentStatus(self, amount):
+        self.initial_HP = amount

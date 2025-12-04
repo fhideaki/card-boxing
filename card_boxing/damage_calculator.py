@@ -53,3 +53,10 @@ class DamageCalculator:
     def apply_mitigation(base_damage, base_defense):
         final_damage = base_damage * base_defense
         return final_damage
+    
+    # Calcula o quanto de vida deve ser recuperada.
+    @staticmethod
+    def apply_hp_recover(fall_counter, player_hp):
+        percentage_recover = (1 - 0.15) ** fall_counter
+        amount_recovered = player_hp * percentage_recover
+        return amount_recovered

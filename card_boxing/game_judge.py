@@ -5,11 +5,12 @@ from robot import Robot
 from static import conflicts_table
 from ui_manager import UIManager
 from typing import Dict, Any, Tuple, List, TYPE_CHECKING
+from damage_calculator import DamageCalculator
 import random
 
 # Criando uma classe "juiz" para conferir os status do deck e do robô de cada jogador.
 class GameJudge:
-    def __init__(self, ui_manager: UIManager, damage_calculator):
+    def __init__(self, ui_manager: UIManager, damage_calculator: DamageCalculator):
         # Inicializando o gerenciador de UI
         self.ui = ui_manager
         self.ui.printMessage('Judge created.')
@@ -204,18 +205,6 @@ class GameJudge:
     def reset_draw_lock(self, player):
         player.draw_blocked = False
 
-    #     # Método para aplicar dano
-    # def apply_damage(self, player, damage):
-    #     # Checa invulnerabilidade
-    #     if player.is_invincible:
-    #         self.log_message(f"Judge: {player.name} is invulnerable, no damage applied.")
-    #         return True
-
-    #     # Aplicando dano ao robô
-    #     if damage > 0:
-    #         player.initial_HP -= damage
-    #         self.log_message(f"Judge: {player.name} received {damage} damage! HP left: {player.initial_HP}")
-
         # Método para dropar um slot da mão do jogador
     def drop_hand_slot(self, player, num_slots):
         current_limit = player.max_hand_slots
@@ -278,13 +267,16 @@ class GameJudge:
             else:
                 ko_cost = self.apply_ko_cost(target)
                 print(f'Cost to get up {ko_cost}')
+
                 if self.apply_ko(target, ko_cost):
                     self.declare_winner(attacker, "K.O.")
                 else:
-                    if not self.discard_from_deck(target, ko_cost):
+                    can_pay_ko_cost = self.discard_from_deck(target, ko_cost)
+
+                    if not can_pay_ko_cost:
                         self.declare_winner(attacker, "K.O.")
                     else: 
-                        self.discard_from_deck(target, ko_cost)
+                        self.recover_player_hp(target)
         return
 
     # Método para resetar o contador de quedas
@@ -355,3 +347,13 @@ class GameJudge:
     # Adiciona um ponto ao placar do jogador
     def add_point(self, player):
         player.score += 1
+
+    # Manda o jogador recuperar vida
+    def recover_player_hp(self, player: Player):
+        player_fall_counter = player.fall_counter
+        player_hp_full = player.robot.HP
+
+        player.initial_HP = self.damage_calculator.apply_hp_recover(player.fall_counter, player_hp_full)
+        self.log_message(f"Player {player.name} has recovered {player.initial_HP}/{player_hp_full} HP!")
+
+        return True
