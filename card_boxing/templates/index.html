@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Acesso ao Sistema</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="crt-overlay"></div>
+
+<div class="container">
+    <h1>ACESSO AO SISTEMA</h1>
+
+    <form id="auth-form"> 
+        <label for="username-input">USUÁRIO:</label>
+        <input type="text" id="username-input" name="username">
+
+        <label for="password-input">SENHA:</label>
+        <input type="password" id="password-input" name="password">
+
+        <div class="buttons">
+            <button type="button" id="login-button">LOGAR</button>
+            <button type="button" id="register-button">NOVO_USUÁRIO</button>
+        </div>
+    </form>
+
+    <p id="message-output" style="margin-top: 20px; color: yellow;"></p>
+
+    <div class="terminal-cursor">
+        <span>&gt;</span>
+        <div class="cursor-block"></div>
+    </div>
+</div>
+
+<script>
+    // Coloque o código JavaScript aqui
+    document.addEventListener('DOMContentLoaded', () => {
+        const usernameInput = document.getElementById('username-input');
+        const passwordInput = document.getElementById('password-input');
+        const loginButton = document.getElementById('login-button');
+        const registerButton = document.getElementById('register-button');
+        const messageOutput = document.getElementById('message-output');
+
+        // Função genérica para enviar dados
+        async function sendAuthRequest(endpoint, action) {
+            messageOutput.textContent = `Aguardando resposta do ${action}...`;
+            
+            const username = usernameInput.value;
+            const password = passwordInput.value;
+
+            if (!username || !password) {
+                messageOutput.textContent = 'ERRO: Usuário e Senha são obrigatórios.';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api${endpoint}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    messageOutput.textContent = `[SUCESSO] ${data.message}`;
+                    messageOutput.style.color = '#33ff66'; // Verde
+                    // Após o login, você pode redirecionar ou carregar o dashboard
+                    if (action === 'Login') {
+                       // Exemplo: window.location.href = '/dashboard'; 
+                    }
+                } else {
+                    messageOutput.textContent = `[ERRO ${response.status}] ${data.message}`;
+                    messageOutput.style.color = 'red'; // Vermelho
+                }
+            } catch (error) {
+                console.error('Erro de rede:', error);
+                messageOutput.textContent = 'ERRO DE REDE: Não foi possível conectar ao servidor.';
+                messageOutput.style.color = 'red';
+            }
+        }
+
+        // Evento de Login
+        loginButton.addEventListener('click', () => {
+            sendAuthRequest('/login', 'Login');
+        });
+
+        // Evento de Registro
+        registerButton.addEventListener('click', () => {
+            sendAuthRequest('/register', 'Registro');
+        });
+    });
+</script>
+
+</body>
+</html>
