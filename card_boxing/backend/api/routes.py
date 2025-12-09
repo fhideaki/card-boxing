@@ -1,6 +1,6 @@
 # Imports
 from flask import request, jsonify, Blueprint, redirect, render_template, url_for, flash, send_file
-from backend.database.operations import *
+from database.operations import *
 
 # Construtor do flask/ Flask constructor
 api = Blueprint('api', __name__)
