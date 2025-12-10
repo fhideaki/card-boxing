@@ -1,10 +1,14 @@
 import { useState } from "react";
 import "../styles/login.css";
+import { useNavigate } from "react-router-dom";
+
 
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");   // <-- mensagem exibida abaixo
+  const [message, setMessage] = useState("");
+  const navigate = useNavigate();
+
 
   async function handleLogin(e) {
     e.preventDefault();
@@ -18,11 +22,15 @@ export default function Login() {
       });
 
       const data = await response.json();
-      setMessage(data.message);  // <-- Aqui aparece no lugar certo
-    } catch (error) {
-      setMessage("Erro ao conectar ao servidor.");
+      setMessage(data.message);
+
+     if (response.status === 200) {
+      navigate("/home");  // ⬅ Redireciona para UserHome
     }
+  } catch (error) {
+    setMessage("Erro ao conectar ao servidor.");
   }
+}
 
   return (
     <div className="container">

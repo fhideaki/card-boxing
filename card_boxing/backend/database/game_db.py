@@ -113,6 +113,32 @@ CREATE TABLE IF NOT EXISTS robot_parts (
 )
 """)
 
+# Tabela de todas as cartas que o robô dispõe
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS robot_available_cards (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    robot_id INTEGER NOT NULL,
+    card_id INTEGER NOT NULL,
+    quantity INTEGER NOT NULL DEFAULT 1,
+
+    FOREIGN KEY (robot_id) REFERENCES robots(id) ON DELETE CASCADE,
+    FOREIGN KEY (card_id) REFERENCES special_cards(id)
+)
+""")
+
+# Tabela do deck ativo do robô
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS robot_decks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    robot_id INTEGER NOT NULL,
+    card_id INTEGER NOT NULL,
+    quantity INTEGER NOT NULL DEFAULT 1,
+
+    FOREIGN KEY (robot_id) REFERENCES robots(id) ON DELETE CASCADE,
+    FOREIGN KEY (card_id) REFERENCES special_cards(id)
+)
+""")
+
 # Tabela dos robôs criados
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS robots (
