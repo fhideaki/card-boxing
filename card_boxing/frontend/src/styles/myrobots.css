@@ -1,0 +1,80 @@
+.robot-page {
+  display: flex;
+  padding: 20px;
+  gap: 30px;
+}
+
+.side-menu {
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.btn {
+  padding: 12px 20px;
+  font-size: 18px;
+  background: #222;
+  color: #fff;
+  border: 2px solid #444;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.btn.secondary {
+  background: #333;
+}
+
+.robot-list {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.robot-card {
+  width: 260px;
+  height: 380px;
+  background: #1a1a1a;
+  border-radius: 20px;
+  padding: 20px;
+  position: relative;
+  transition: 0.3s;
+  overflow: hidden;
+  border: 2px solid #333;
+}
+
+.robot-card:hover {
+  border-color: #5cf2ff;
+  background: #222;
+}
+
+/* Detalhes revelados só no hover */
+.robot-details {
+  opacity: 0;
+  transition: 0.3s;
+  margin-top: 20px;
+}
+
+.robot-card:hover .robot-details {
+  opacity: 1;
+}
+
+.parts-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 40px);
+  gap: 5px;
+  margin-bottom: 20px;
+}
+
+.part-icon {
+  width: 40px;
+  height: 40px;
+  background: #555;
+  border-radius: 8px;
+}
+
+.stats-chart {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 10px;
+  border-radius: 10px;
+}
