@@ -32,6 +32,10 @@ export default function Login() {
   }
 }
 
+  function handleRegister() {
+      navigate("/register");
+    }
+
   return (
     <div className="container">
       <h1>Card Boxing</h1>
@@ -54,6 +58,10 @@ export default function Login() {
         <div className="buttons">
           <button type="submit">Entrar</button>
         </div>
+        
+        <button type="button" onClick={handleRegister}>
+            Registrar
+          </button>
       </form>
 
       {/* Mensagem da API */}
