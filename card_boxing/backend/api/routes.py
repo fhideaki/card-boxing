@@ -4,6 +4,7 @@ from database.operations import *
 from models.static import *
 import sqlite3
 from models.robot import *
+from models.deck import *
 
 # Construtor do flask/ Flask constructor
 api = Blueprint('api', __name__)
@@ -131,10 +132,13 @@ def archetype_preview(archetype_key):
     base = archetype["base_stats"]
     secondary = calculate_secondary_stats(base)
 
+    deck = build_deck(archetype["deck"], card_list)
+
     return jsonify({
         "key": archetype_key,
         "label": archetype["label"],
         "image": archetype["image"],
         "base_stats": base,
-        "secondary_stats": secondary
+        "secondary_stats": secondary,
+        "deck":deck
     })

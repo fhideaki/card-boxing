@@ -69,22 +69,42 @@ export default function Teste() {
           points={statPolygon.join(" ")}
         />
 
-        {attributes.map((attr) => {
-          const rad = (attr.angle * Math.PI) / 180;
+{attributes.map((attr) => {
+  const rad = (attr.angle * Math.PI) / 180;
 
-          return (
-            <text
-              key={attr.key}
-              x={center + (radius + 20) * Math.cos(rad)}
-              y={center + (radius + 20) * Math.sin(rad)}
-              textAnchor="middle"
-              dominantBaseline="middle"
-              className="radar-label"
-            >
-              {attr.label}
-            </text>
-          );
-        })}
+  const labelX = center + (radius + 20) * Math.cos(rad);
+  const labelY = center + (radius + 20) * Math.sin(rad);
+
+  const valueX = center + (radius + 36) * Math.cos(rad);
+  const valueY = center + (radius + 36) * Math.sin(rad);
+
+  return (
+    <g key={attr.key}>
+      {/* Label (STR, AGI, etc) */}
+      <text
+        x={labelX}
+        y={labelY}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        className="radar-label"
+      >
+        {attr.label}
+      </text>
+
+      {/* Valor numérico */}
+      <text
+        x={valueX}
+        y={valueY}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        className="radar-value"
+      >
+        {stats[attr.key]}
+      </text>
+    </g>
+  );
+})}
+
       </svg>
     );
   }
@@ -105,6 +125,28 @@ export default function Teste() {
       <div className="a4-container">
         {renderRadarChart(radarStats)}
       </div>
+      <div className="deck-box">
+        <h3>Deck Base</h3>
+
+        <ul>
+          {attackArchetype.deck.base_cards.map(card => (
+            <li key={card.id}>
+              {card.name} x{card.quantity}
+            </li>
+          ))}
+        </ul>
+
+        <h3>Cartas Especiais</h3>
+
+        <ul>
+          {attackArchetype.deck.special_cards.map(card => (
+            <li key={card.id}>
+              {card.name} x{card.quantity}
+            </li>
+          ))}
+        </ul>
+      </div>
+
     </div>
   );
 }

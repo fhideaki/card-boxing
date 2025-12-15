@@ -7,6 +7,33 @@ def findCardById(card_list, card_id):
             return card_data
     return None
 
+# Função que retorna as cartas já com nome e quantidade de acordo com o arquétipo do robô.
+def build_deck(deck_data, all_cards):
+    deck_result = {
+        "base_cards": [],
+        "special_cards": []
+    }
+
+    for card_id, qty in deck_data.get("base_cards", {}).items():
+        card = findCardById(all_cards, card_id)
+        if card:
+            deck_result["base_cards"].append({
+                "id": card["id"],
+                "name": card["name"],
+                "quantity": qty
+            })
+
+    for card_id, qty in deck_data.get("special_cards", {}).items():
+        card = findCardById(all_cards, card_id)
+        if card:
+            deck_result["special_cards"].append({
+                "id": card["id"],
+                "name": card["name"],
+                "quantity": qty
+            })
+
+    return deck_result
+
 # Criando a classe deck.
 class Deck:
     def __init__(self, archetype):
