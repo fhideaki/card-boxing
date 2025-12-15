@@ -7,13 +7,11 @@ import CreateRobot from "./pages/CreateRobot";
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/home" element={<UserHome />} />
-        <Route path="/robots" element={<MyRobots />} />
-        <Route path="/create-robot" element={<CreateRobot />} />
-      </Routes>
-    </BrowserRouter>
+    <Routes>
+      <Route path="/" element={<Login />} />
+      <Route path="/home" element={<UserHome />} />
+      <Route path="/robots" element={<MyRobots />} />
+      <Route path="/create-robot" element={<CreateRobot />} />
+    </Routes>
   );
 }
