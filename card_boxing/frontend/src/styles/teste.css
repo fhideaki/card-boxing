@@ -1,0 +1,61 @@
+.a4-container {
+  width: 300px;
+  aspect-ratio: 210 / 297;
+
+  background-color: #111;
+  border: 2px solid #444;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  overflow: hidden;
+
+  position: relative; /* MUITO IMPORTANTE */
+}
+
+
+/* Imagem dentro do A4 */
+.a4-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* não distorce */
+}
+
+.a4-container::after {
+  content: "";
+  position: absolute;
+  inset: 0; /* top, right, bottom, left = 0 */
+
+  background-color: rgba(0, 0, 0, 0.35); /* película escura */
+  opacity: 0;
+
+  transition: opacity 0.25s ease-in-out;
+  pointer-events: none; /* não interfere no mouse */
+}
+
+.a4-container:hover::after {
+  opacity: 1;
+}
+
+.radar-chart {
+  overflow: visible;
+}
+
+.radar-grid {
+  fill: none;
+  stroke: #555;
+  stroke-width: 2;
+}
+
+.radar-stats {
+  fill: rgba(0, 180, 255, 0.4);
+  stroke: #00b4ff;
+  stroke-width: 2;
+}
+
+.radar-label {
+  fill: white;
+  font-size: 12px;
+  font-weight: bold;
+}

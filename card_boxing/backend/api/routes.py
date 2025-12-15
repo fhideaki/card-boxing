@@ -1,6 +1,9 @@
 # Imports
 from flask import request, jsonify, Blueprint, redirect, render_template, url_for, flash, send_file
 from database.operations import *
+from models.static import *
+import sqlite3
+from models.robot import *
 
 # Construtor do flask/ Flask constructor
 api = Blueprint('api', __name__)
@@ -50,7 +53,7 @@ def get_user_robots():
     if not user_id:
         return jsonify({"error": "user_id is required"}), 400
 
-    conn = get_db()
+    conn = sqlite3.connect('card_game.db')
     cursor = conn.cursor()
 
     # Buscar todos os robôs do jogador
@@ -112,12 +115,26 @@ def get_user_robots():
 
     conn.close()
     return jsonify({"robots": robots_list})
-# # Registro de Jogador
-# @api.route('/', methods=['POST'])
-# def register(username, password):
-#     create_user(username, password)
 
-# # Login
-# @api.route('/', methods=['POST'])
-# def login(username, password):
-#     check_password(username, password)
+# Envio dos arquétipos e dos dados base
+@api.route("/archetypes", methods=["GET"])
+def get_archetypes():
+    return jsonify(robot_archetypes)
+
+@api.route("/archetypes/<string:archetype_key>/preview")
+def archetype_preview(archetype_key):
+    archetype = robot_archetypes.get(archetype_key)
+
+    if not archetype:
+        return jsonify({"error": "Arquétipo não encontrado"}), 404
+
+    base = archetype["base_stats"]
+    secondary = calculate_secondary_stats(base)
+
+    return jsonify({
+        "key": archetype_key,
+        "label": archetype["label"],
+        "image": archetype["image"],
+        "base_stats": base,
+        "secondary_stats": secondary
+    })

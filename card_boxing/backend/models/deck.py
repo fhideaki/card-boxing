@@ -1,4 +1,4 @@
-from static import card_list
+from static import card_list, robot_archetypes
 
 # Método para encontrar uma carta pelo ID
 def findCardById(card_list, card_id):
@@ -16,34 +16,12 @@ class Deck:
         cards = card_list
 
         # Criando o deck básico do jogador com 3 cartas de cada tipo.
-        for i in range(3):
-            self.deck.append(
-                findCardById(cards, 2)
-                )
-        for i in range(3):
-            self.deck.append(
-                findCardById(cards, 1)
-                )
-        for i in range(3):
-            self.deck.append(
-                findCardById(cards, 3)
-                )
-        
-        # Colocando uma carta especial para cada arquétipo diferente
-        if archetype == "atk":
-            for i in range(2):
-                self.deck.append(
-                    findCardById(cards, 4)
-                    )
-        elif archetype == "def":
-            for i in range(2):
-                self.deck.append(
-                    findCardById(cards, 5)
-                    )
-        elif archetype == "bal":
-            self.deck.append(
-                findCardById(cards, 4)
-                )
-            self.deck.append(
-                findCardById(cards, 5)
-                )
+        deck_source = robot_archetypes[archetype]["deck"]
+
+        for card_id, qty in deck_source["base_cards"].items():
+            for _ in range(qty):
+                self.deck.append(findCardById(cards, card_id))
+
+        for card_id, qty in deck_source["special_cards"].items():
+            for _ in range(qty):
+                self.deck.append(findCardById(cards, card_id))

@@ -2,46 +2,42 @@
 
 # Imports
 # Imports rich são para melhorar a qualidade do display dos dados para o usuário
-from rich.console import Console
-from rich.table import Table
-from static import parts_list
-from ui_manager import UIManager
+from .static import parts_list
+from .static import *
 
 # Dois robôs boxeadores se enfrentam no ringue. Cada robô realiza uma ação que é declarada por meio de cartas.
 # O jogo dura 3 rounds.
 # Cada round acontece em 3 turnos.
 # Cada turno é composto por uma ação de cada jogador e por suas consequências.
 
+# Método só para calcular os atributos secundários sem criar o robô
+def calculate_secondary_stats(base):
+    
+    return {
+        "defense": base["constitution"] + 0.6 * base["strength"],
+        "attack": base["strength"] + 0.6 * base["agility"],
+        "clinch": base["agility"] + 0.6 * base["strength"],
+    }
+        
 # Criando primeiro a classe robô.
 class Robot:
     # Aqui o jogador define se ele quer um arquétipo de robô focado em ataque, defesa ou balanceado. Isso define os atributos base do robô.
     def __init__(self, archetype, ui_manager, robot_name=None):
         
         self.archetype = archetype
+
+        data = robot_archetypes[archetype]["base_stats"]
         
-        if archetype == "atk":
-            self.constitution = 6
-            self.strength = 10
-            self.agility = 8
-            self.HP = 6
-            
-        elif archetype == "def":
-            self.constitution = 10
-            self.strength = 6
-            self.agility = 6
-            self.HP = 8
-            
-        elif archetype == "bal":
-            self.constitution = 7
-            self.strength = 7
-            self.agility = 7
-            self.HP = 7
-            
-        self.robot_name = robot_name
-            
+        self.constitution = data["constitution"]
+        self.strength = data["strength"]
+        self.agility = data["agility"]
+        self.HP = data["HP"]
+                    
         self.defense = self.constitution + (0.6 * self.strength)
         self.attack = self.strength + (0.6 * self.agility)
         self.clinch = self.agility + (0.6 * self.strength)
+
+        self.robot_name = robot_name
 
         # Calcular o quanto de vida o jogador vai recuperar quando se levantar
         self.recover_modifier = 0
@@ -60,7 +56,7 @@ class Robot:
         }
 
         self.ui = ui_manager
-        
+
     # Método para mostrar os atributos e status do robô.
     def showStats(self):
         stats_table = self.ui.createStatsTable(f"Robot {self.robot_name}'s Stats")

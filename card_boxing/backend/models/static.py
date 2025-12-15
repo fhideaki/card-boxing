@@ -1,4 +1,4 @@
-from effects import *
+from .effects import *
 
 # Tudo o que é estático (cartas, partes, etc) vai ficar armazenado aqui.
 card_list = [
@@ -260,4 +260,71 @@ weaknesses_matrix = {
     "fire": ["iron", "rubber"],
     "water": ["fire"],
     "neutral": []
+}
+
+# Lista de arquétipos base dos robôs, e também de quais cartas são adicionadas a cada um de acordo com o seu arquétipo
+robot_archetypes = {
+    "atk": {
+        "label": "Ataque (ATK)",
+        "image":"atk.jpg",
+        "base_stats": {
+            "constitution": 6,
+            "strength": 10,
+            "agility": 8,
+            "HP": 6
+        },
+        "deck": {
+            "base_cards": {
+                1: 3,  # Simple Guard
+                2: 3,  # Simple Attack
+                3: 3   # Clinch
+            },
+            "special_cards": {
+                4: 2   # Strong Attack
+            }
+        }
+    },
+
+    "def": {
+        "label": "Defesa (DEF)",
+        "image":"def.jpg",
+        "base_stats": {
+            "constitution": 10,
+            "strength": 6,
+            "agility": 6,
+            "HP": 8
+        },
+        "deck": {
+            "base_cards": {
+                1: 3,
+                2: 3,
+                3: 3
+            },
+            "special_cards": {
+                5: 2   # Special Guard
+            }
+        }
+    },
+
+    "bal": {
+        "label": "Balanceado (BAL)",
+        "image":"bal.jpg",
+        "base_stats": {
+            "constitution": 7,
+            "strength": 7,
+            "agility": 7,
+            "HP": 7
+        },
+        "deck": {
+            "base_cards": {
+                1: 3,
+                2: 3,
+                3: 3
+            },
+            "special_cards": {
+                4: 1,  # Strong Attack
+                5: 1   # Special Guard
+            }
+        }
+    }
 }
