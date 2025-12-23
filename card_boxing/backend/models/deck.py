@@ -1,4 +1,4 @@
-from static import card_list, robot_archetypes
+from .static import card_list, robot_archetypes
 
 # Método para encontrar uma carta pelo ID
 def findCardById(card_list, card_id):

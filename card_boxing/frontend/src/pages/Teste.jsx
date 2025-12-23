@@ -2,28 +2,28 @@ import { useEffect, useState } from "react";
 import "../styles/teste.css";
 
 export default function Teste() {
-  const [attackArchetype, setAttackArchetype] = useState(null);
+  const [archetypes, setArchetypes] = useState([]);
+
+  const [selectedName, setSelectedName] = useState("Nenhum");
+
+  const [robotName, setRobotName] = useState("");
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/archetypes/atk/preview")
+    fetch("http://localhost:5000/api/archetypes/all/preview") 
       .then((res) => res.json())
       .then((data) => {
-        console.log("DADOS RECEBIDOS:", data);
-        setAttackArchetype(data); // confirme se é atk mesmo
+        console.log("LISTA RECEBIDA:", data);
+        // data aqui deve ser um array: [{...atk}, {...def}, {...bal}]
+        setArchetypes(data); 
       })
-      .catch((err) =>
-        console.error("Erro ao buscar arquétipo de ataque:", err)
-      );
-  }, []);
+      .catch((err) => console.error("Erro ao buscar arquétipos:", err));
+}, []);
 
-  if (!attackArchetype) {
-    return <p>Carregando...</p>;
-  }
-
-    const radarStats = {
-    ...attackArchetype.base_stats,
-    ...attackArchetype.secondary_stats
-    };
+  const handleSelectArchetype = (archetype) => {
+    setSelectedName(archetype.label);
+    console.log("Arquétipo selecionado para criação:", archetype.label);
+    // alert(`Você selecionou o arquétipo: ${archetype.label}`);
+  };
 
   // 🔹 Radar criado dentro do próprio componente
   function renderRadarChart(stats) {
@@ -69,84 +69,157 @@ export default function Teste() {
           points={statPolygon.join(" ")}
         />
 
-{attributes.map((attr) => {
-  const rad = (attr.angle * Math.PI) / 180;
+        {attributes.map((attr) => {
+          const rad = (attr.angle * Math.PI) / 180;
 
-  const labelX = center + (radius + 20) * Math.cos(rad);
-  const labelY = center + (radius + 20) * Math.sin(rad);
-
-  const valueX = center + (radius + 36) * Math.cos(rad);
-  const valueY = center + (radius + 36) * Math.sin(rad);
-
-  return (
-    <g key={attr.key}>
-      {/* Label (STR, AGI, etc) */}
-      <text
-        x={labelX}
-        y={labelY}
-        textAnchor="middle"
-        dominantBaseline="middle"
-        className="radar-label"
-      >
-        {attr.label}
-      </text>
-
-      {/* Valor numérico */}
-      <text
-        x={valueX}
-        y={valueY}
-        textAnchor="middle"
-        dominantBaseline="middle"
-        className="radar-value"
-      >
-        {stats[attr.key]}
-      </text>
-    </g>
-  );
-})}
-
+          const labelX = center + (radius + 20) * Math.cos(rad);
+          const labelY = center + (radius + 20) * Math.sin(rad);
+          
+          return (
+            <text key={attr.key} x={labelX} y={labelY} textAnchor="middle" dominantBaseline="middle" className="radar-label">
+              {attr.label}
+            </text>
+          );
+        })}
       </svg>
     );
   }
+          // const valueX = center + (radius + 36) * Math.cos(rad);
+          // const valueY = center + (radius + 36) * Math.sin(rad);
+
+  if (archetypes.length === 0) return <p>Carregando arquétipos...</p>;
 
   // 🔹 RETURN FINAL — UM ÚNICO PAI
+ 
+  // return (
+  //   <div className="main-page-container">
+  //     {archetypes.map((archetype, index) => {
+  //       const radarStats = {
+  //         ...archetype.base_stats,
+  //         ...archetype.secondary_stats
+  //       };
+
+  //       return (
+  //         <div key={index} className="page-wrapper clickable-card" onClick={() => handleSelectArchetype(archetype)}>
+  //           {/* Página A4 da imagem */}
+  //           <div className="a4-container a4-image-container">
+  //             <img
+  //               src={`/images/${archetype.image}`}
+  //               alt={archetype.label}
+  //               className="a4-image"
+  //             />
+  //             <h2 className="archetype-title">{archetype.label}</h2>
+  //           </div>
+
+  //           {/* Página A4 do radar */}
+  //           <div className="a4-container a4-info-container">
+  //             {renderRadarChart(radarStats)}
+
+  //             <div className="status-box">
+  //               <h3>HP: {archetype.base_stats.HP}</h3>
+  //             </div>
+
+  //             <div className="deck-box">
+  //               <h3>Deck Base</h3>
+  //               <ul>
+  //                 {archetype.deck.base_cards.map(card => (
+  //                   <li key={card.id}>{card.name} x{card.quantity}</li>
+  //                 ))}
+  //               </ul>
+
+  //               <h3>Cartas Especiais</h3>
+                
+  //               <ul>
+  //                 {archetype.deck.special_cards.map(card => (
+  //                   <li key={card.id}>{card.name} x{card.quantity}</li>
+  //                 ))}
+  //               </ul>
+
+  //             </div>
+  //           </div>
+  //         </div>
+  //       );
+  //     })} 
+
+  //     <div className="selection-display">
+  //       <h2>Arquétipo Selecionado: <span>{selectedName}</span></h2>
+  //     </div>     
+  //     <div className="input-group">
+  //       <label htmlFor="robot-name">Nome do seu Robô:</label>
+  //       <input 
+  //         id="robot-name"
+  //         type="text" 
+  //         placeholder="Digite o nome..." 
+  //         value={robotName} 
+  //         onChange={(e) => setRobotName(e.target.value)} // Atualiza o estado ao digitar
+  //       />
+  //     </div>
+  //   </div>
+  // );  
   return (
-    <div className="page-wrapper">
-      {/* Página A4 da imagem */}
-      <div className="a4-container">
-        <img
-          src={`/images/${attackArchetype.image}`}
-          alt={attackArchetype.label}
-          className="a4-image"
+    <div className="main-page-container">
+      <div className="cards-grid-container">
+        {archetypes.map((archetype, index) => {
+        const radarStats = {
+          ...archetype.base_stats,
+          ...archetype.secondary_stats
+        };
+        return (
+          <div key={index} className="page-wrapper clickable-card" onClick={() => handleSelectArchetype(archetype)}>
+            {/* Página A4 da imagem */}
+            <div className="a4-container a4-image-container">
+              <img
+                src={`/images/${archetype.image}`}
+                alt={archetype.label}
+                className="a4-image"
+              />
+              <h2 className="archetype-title">{archetype.label}</h2>
+            </div>
+
+            {/* Página A4 do radar */}
+            <div className="a4-container a4-info-container">
+              {renderRadarChart(radarStats)}
+
+              <div className="status-box">
+                <h3>HP: {archetype.base_stats.HP}</h3>
+              </div>
+
+              <div className="deck-box">
+                <h3>Deck Base</h3>
+                <ul>
+                  {archetype.deck.base_cards.map(card => (
+                    <li key={card.id}>{card.name} x{card.quantity}</li>
+                  ))}
+                </ul>
+
+                <h3>Cartas Especiais</h3>
+                
+                <ul>
+                  {archetype.deck.special_cards.map(card => (
+                    <li key={card.id}>{card.name} x{card.quantity}</li>
+                  ))}
+                </ul>
+
+              </div>
+            </div>
+          </div>
+        );
+        })} 
+      </div>
+
+      <div className="selection-display">
+        <h2>Arquétipo Selecionado: <span>{selectedName}</span></h2>
+      </div>     
+      <div className="input-group">
+        <label htmlFor="robot-name">Nome do seu Robô:</label>
+        <input 
+          id="robot-name"
+          type="text" 
+          placeholder="Digite o nome..." 
+          value={robotName} 
+          onChange={(e) => setRobotName(e.target.value)} // Atualiza o estado ao digitar
         />
       </div>
-
-      {/* Página A4 do radar */}
-      <div className="a4-container">
-        {renderRadarChart(radarStats)}
-      </div>
-      <div className="deck-box">
-        <h3>Deck Base</h3>
-
-        <ul>
-          {attackArchetype.deck.base_cards.map(card => (
-            <li key={card.id}>
-              {card.name} x{card.quantity}
-            </li>
-          ))}
-        </ul>
-
-        <h3>Cartas Especiais</h3>
-
-        <ul>
-          {attackArchetype.deck.special_cards.map(card => (
-            <li key={card.id}>
-              {card.name} x{card.quantity}
-            </li>
-          ))}
-        </ul>
-      </div>
-
     </div>
   );
 }

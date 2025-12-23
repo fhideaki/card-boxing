@@ -142,3 +142,44 @@ def archetype_preview(archetype_key):
         "secondary_stats": secondary,
         "deck":deck
     })
+
+@api.route("/archetypes/all/preview")
+def all_archetypes_preview():
+    all_previews = []
+
+    # Iteramos sobre o dicionário robot_archetypes
+    for archetype_key, data in robot_archetypes.items():
+        base = data["base_stats"]
+        
+        # Reutiliza suas funções existentes
+        secondary = calculate_secondary_stats(base)
+        deck = build_deck(data["deck"], card_list)
+
+        # Monta o objeto formatado para cada um
+        preview = {
+            "key": archetype_key,
+            "label": data["label"],
+            "image": data["image"],
+            "base_stats": base,
+            "secondary_stats": secondary,
+            "deck": deck
+        }
+        all_previews.append(preview)
+
+    # Retorna a lista completa de objetos
+    return jsonify(all_previews)
+
+@api.route('/robots/create', methods=["POST"])
+def create_robot():
+    data = request.get_json()
+    
+    robot_name = data.get('robot_name')
+    player_id = data.get('player_id')
+    archetype_key = data.get('archetype_key')
+
+    if not robot_name or not archetype_key:
+        return jsonify({"message": "Dados incompletos"}), 400
+    
+    insert_robot_in_db(robot_name, player_id, archetype_key)
+    
+    return jsonify({"message": "Robô criado com sucesso!"}), 201

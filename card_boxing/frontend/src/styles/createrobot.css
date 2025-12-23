@@ -1,112 +1,155 @@
-/* No topo do createrobot.css */
-html, body {
-  overflow-y: auto !important; /* Força a barra vertical */
-  overflow-x: hidden;          /* Evita barra horizontal chata */
-  height: auto !important;     /* Permite que o corpo cresça com o conteúdo */
-  margin: 0;
-  padding: 0;
+/* Adicione isso ao topo do seu teste.css */
+.main-container {
+  display: flex;
+  flex-direction: row; /* Alinha os robôs lado a lado */
+  flex-wrap: wrap;     /* Permite quebrar linha se não couberem os 3 */
+  justify-content: center; /* Centraliza o grupo de cards na tela */
+  gap: 30px;           /* Espaço entre um robô e outro */
+  padding: 40px 20px;
+  background-color: #050505; /* Cor de fundo opcional para contraste */
+  min-height: 100vh;
 }
 
-/* Container principal */
-.create-robot-container {
+.main-page-container {
+  display: flex;
+  flex-direction: column; /* Coloca os cards em cima e o texto embaixo */
+  align-items: center;    /* Centraliza horizontalmente */
+  gap: 40px;
+  padding: 40px;
+  min-height: 100vh;
+  background-color: #050505;
+}
+
+/* O container que segura apenas os cards lado a lado */
+.cards-grid-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 30px;
+  width: 100%;
+}
+/* Garante que cada par de carta ocupe o espaço correto */
+.page-wrapper {
+  aspect-ratio: 1 / 1.414;
+  position: relative;
+  width: 25vw;
+}
+
+.archetype-title {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: white;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 8px 20px;
+  border-radius: 4px;
+  z-index: 6; /* Acima da película, abaixo das infos */
+  white-space: nowrap;
+  pointer-events: none; /* Mouse ignora o texto para não bugar o hover */
+}
+.a4-container {
+  width: 25vw;
+  aspect-ratio: 1 / 1.414;
+  background-color: #111;
+  border: 2px solid #444;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 2rem;
-}
-
-/* Input de nome */
-.robot-name-input {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border: 2px solid #ccc;
-  border-radius: 12px;
-  font-size: 1rem;
-  transition: border 0.2s ease;
-}
-.robot-name-input:focus {
-  border-color: #6366f1;
-  outline: none;
-}
-
-/* Opções de arquétipo */
-.archetype-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.archetype-card {
-  border: 2px solid #d1d5db;
-  border-radius: 16px;
-  padding: 1rem;
-  text-align: center;
-  font-weight: bold;
-  cursor: pointer;
-  transition: transform 0.2s ease, border-color 0.2s ease;
-  background: #f9fafb;
-  position: relative;
-}
-.archetype-card:hover {
-  transform: translateY(-4px);
-  border-color: #6366f1;
-}
-
-/* Tooltip base */
-.tooltip {
-  position: absolute;
-  top: -10px;
-  left: 50%;
-  transform: translate(-50%, -100%);
-  background: #111827;
-  color: white;
-  padding: 0.75rem 1rem;
-  border-radius: 12px;
-  font-size: 0.85rem;
-  width: 180px;
-  display: none;
-  z-index: 10;
-}
-.archetype-card:hover .tooltip {
-  display: block;
-}
-
-/* Tooltip extra: gráficos de stats (barras simples) */
-.stat-bar {
-  height: 8px;
-  border-radius: 8px;
-  background: #4b5563;
-  margin-top: 4px;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
+  position: relative; 
 }
 
-.stat-bar-fill {
+/* 2. CONTEÚDO ESPECÍFICO */
+
+.a4-image {
+  width: 100%;
   height: 100%;
-  background: #818cf8;
+  object-fit: contain; 
 }
 
-/* Exibição das cartas base */
-.cards-preview {
-  margin-top: 0.75rem;
-  font-size: 0.75rem;
-  color: #e5e7eb;
+.a4-info-container {
+    /* Posição inicial: Absoluta e AGORA SOBRE A IMAGEM */
+    position: absolute;
+    top: 0;
+    left: 0; /* MUITO IMPORTANTE: Posiciona exatamente onde a imagem está */
+
+    /* Ocultamento inicial */
+    opacity: 0;
+
+    /* REMOVEMOS O 'left' da transição. APENAS a opacidade transiciona. */
+    transition: opacity 0.5s ease-in-out; 
+    
+    z-index: 10;
 }
 
-/* Botão de enviar */
-.submit-btn {
-  background: #6366f1;
-  color: white;
-  padding: 0.75rem 1.25rem;
-  border-radius: 12px;
-  border: none;
-  font-size: 1rem;
+/* Película (Deve ser aplicada APENAS ao a4-image-container) */
+.a4-image-container::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.35); 
+  opacity: 0; 
+  transition: opacity 0.25s ease-in-out;
+  pointer-events: none;
+  z-index: 5; 
+}
+
+/* 3. INTERAÇÃO HOVER (Se o seletor '+' falhar, use o seletor do page-wrapper) */
+
+/* Escurece a Imagem quando o mouse está sobre a área do wrapper */
+.page-wrapper:hover .a4-image-container::after {
+  opacity: 1; /* Escurece a imagem */
+}
+
+/* Mostra o Contêiner de Informações quando o mouse está sobre a área do wrapper */
+.page-wrapper:hover .a4-info-container {
+  opacity: 1; /* Torna visível */
+}
+
+
+/* 4. ESTILOS DO RADAR (Sem alterações) */
+.radar-chart {
+  overflow: visible;
+}
+
+.radar-grid {
+  fill: none;
+  stroke: #555;
+  stroke-width: 2;
+}
+
+.radar-stats {
+  fill: rgba(0, 180, 255, 0.4);
+  stroke: #00b4ff;
+  stroke-width: 2;
+}
+
+.radar-label {
+  fill: white;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.clickable-card {
   cursor: pointer;
-  transition: background 0.2s ease;
-  margin-top: 1rem;
+  transition: transform 0.2s ease;
 }
-.submit-btn:hover {
-  background: #4f46e5;
+
+/* Um leve efeito de "clique" quando o usuário pressionar o mouse */
+.clickable-card:active {
+  transform: scale(0.98);
 }
+
+@keyframes highlight {
+  from { transform: scale(1.1); color: #fff; }
+  to { transform: scale(1); color: #00b4ff; }
+}
+
+.selection-display span {
+  display: inline-block;
+  animation: highlight 0.3s ease-out;
+}
+

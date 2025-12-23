@@ -2,177 +2,199 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/createrobot.css";
 
-export default function CreateRobot() {
-  // ================================
-  // ESTADOS (dados que mudam na tela)
-  // ================================
-  const [name, setName] = useState("");
-  const [selected, setSelected] = useState(null);
-  const [archetypes, setArchetypes] = useState(null);
-
+export default function Teste() {
   const navigate = useNavigate();
+  
+  const [archetypes, setArchetypes] = useState([]);
 
-  // ================================
-  // BUSCA DOS ARQUÉTIPOS (API)
-  // ================================
+  const [selectedName, setSelectedName] = useState("Nenhum");
+  const [selectedArchetype, setSelectedArchetype] = useState(null);
+
+  const [robotName, setRobotName] = useState("");
+
   useEffect(() => {
-    fetch("http://localhost:5000/api/archetypes")
+    fetch("http://localhost:5000/api/archetypes/all/preview") 
       .then((res) => res.json())
-      .then((data) => setArchetypes(data))
-      .catch((err) =>
-        console.error("Erro ao buscar arquétipos:", err)
-      );
-  }, []);
+      .then((data) => {
+        console.log("LISTA RECEBIDA:", data);
+        // data aqui deve ser um array: [{...atk}, {...def}, {...bal}]
+        setArchetypes(data); 
+      })
+      .catch((err) => console.error("Erro ao buscar arquétipos:", err));
+}, []);
 
-  // ================================
-  // FUNÇÃO DE CÁLCULO (igual ao Python)
-  // ================================
-  const calculateStats = (base) => {
-    const defense = base.constitution + 0.6 * base.strength;
-    const attack = base.strength + 0.6 * base.agility;
-    const clinch = base.agility + 0.6 * base.strength;
-
-    return { ...base, defense, attack, clinch };
+  const handleSelectArchetype = (archetype) => {
+    setSelectedName(archetype.label);
+    setSelectedArchetype(archetype);
   };
 
-  // ================================
-  // LOADING (antes da API responder)
-  // ================================
-  if (!archetypes) {
+  const handleConfirmar = async () => {
+    if (!robotName || !selectedArchetype) {
+      alert("Por favor, digite um nome e selecione um arquétipo!");
+      return;
+    }
+
+  const playerId = localStorage.getItem("playerId");
+
+  const payload = {
+    robot_name: robotName,
+    player_id: playerId,
+    archetype_key: selectedArchetype.key
+  };
+
+  try {
+    const response = await fetch("http://localhost:5000/api/robots/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (response.ok) {
+      alert("Robô construído com sucesso!");
+      navigate("/robots");
+    } else {
+      const errorData = await response.json();
+      alert("Erro: " + errorData.message);
+    }
+  } catch (err) {
+    console.error("Erro na requisição:", err);
+  }
+};
+
+  // 🔹 Radar criado dentro do próprio componente
+  function renderRadarChart(stats) {
+    const size = 220;
+    const center = size / 2;
+    const radius = 80;
+
+    const attributes = [
+    { key: "constitution", label: "CON", angle: -90 },
+    { key: "strength",     label: "STR", angle: -30 },
+    { key: "agility",      label: "AGI", angle: 30 },
+    { key: "attack",       label: "ATK", angle: 90 },
+    { key: "defense",      label: "DEF", angle: 150 },
+    { key: "clinch",       label: "CLI", angle: -150 },
+    ];
+
+    const maxValue = Math.max(...Object.values(stats));
+
+    const basePolygon = attributes.map(attr => {
+        const rad = (attr.angle * Math.PI) / 180;
+        return `${center + radius * Math.cos(rad)},${center + radius * Math.sin(rad)}`;
+    });
+
+    const statPolygon = attributes.map(attr => {
+        const rad = (attr.angle * Math.PI) / 180;
+        const value = Math.min(stats[attr.key] / maxValue, 1);
+        return `${center + radius * value * Math.cos(rad)},${center + radius * value * Math.sin(rad)}`;
+    });
+
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <p>Carregando arquétipos...</p>
-      </div>
+      <svg
+        className="radar-chart"
+        width={size}
+        height={size}
+      >
+        <polygon
+          className="radar-grid"
+          points={basePolygon.join(" ")}
+        />
+
+        <polygon
+          className="radar-stats"
+          points={statPolygon.join(" ")}
+        />
+
+        {attributes.map((attr) => {
+          const rad = (attr.angle * Math.PI) / 180;
+
+          const labelX = center + (radius + 20) * Math.cos(rad);
+          const labelY = center + (radius + 20) * Math.sin(rad);
+          
+          return (
+            <text key={attr.key} x={labelX} y={labelY} textAnchor="middle" dominantBaseline="middle" className="radar-label">
+              {attr.label}
+            </text>
+          );
+        })}
+      </svg>
     );
   }
+          // const valueX = center + (radius + 36) * Math.cos(rad);
+          // const valueY = center + (radius + 36) * Math.sin(rad);
 
-  // ================================
-  // RENDER
-  // ================================
+  if (archetypes.length === 0) return <p>Carregando arquétipos...</p>;
+
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center p-4 md:p-10">
-      <div className="w-full max-w-[900px] bg-neutral-900 rounded-2xl p-8 shadow-xl my-10">
-        <h1 className="text-3xl mb-6 text-center font-bold">
-          Criar Novo Robô
-        </h1>
+    <div className="main-page-container">
+      <div className="cards-grid-container">
+        {archetypes.map((archetype, index) => {
+        const radarStats = {
+          ...archetype.base_stats,
+          ...archetype.secondary_stats
+        };
+        return (
+          <div key={index} className="page-wrapper clickable-card" onClick={() => handleSelectArchetype(archetype)}>
+            {/* Página A4 da imagem */}
+            <div className="a4-container a4-image-container">
+              <img
+                src={`/images/${archetype.image}`}
+                alt={archetype.label}
+                className="a4-image"
+              />
+              <h2 className="archetype-title">{archetype.label}</h2>
+            </div>
 
-        {/* NOME */}
-        <label className="block mb-4">
-          <span className="text-lg">Nome do Robô:</span>
-          <input
-            type="text"
-            className="mt-2 w-full p-3 rounded-lg bg-neutral-800 border border-neutral-700"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </label>
+            {/* Página A4 do radar */}
+            <div className="a4-container a4-info-container">
+              {renderRadarChart(radarStats)}
 
-        <h2 className="text-xl mt-8 mb-4 font-semibold">
-          Selecione o Arquétipo:
-        </h2>
-
-        {/* LISTA DE ARQUÉTIPOS */}
-        <div className="grid grid-cols-3 gap-6 w-full">
-          {Object.entries(archetypes).map(([key, data]) => (
-            <div
-              key={key}
-              onClick={() => setSelected(key)}
-              className={`cursor-pointer rounded-2xl p-6 bg-neutral-800 border-2 transition-all ${
-                selected === key
-                  ? "border-green-400 bg-neutral-700"
-                  : "border-transparent"
-              }`}
-            >
-              {/* IMAGEM DO ARQUÉTIPO */}
-              <div className="w-full h-32 flex items-center justify-center mb-4">
-                <img
-                  src={`/images/${data.image}`}
-                  alt={data.label}
-                  className="max-h-full max-w-full object-contain"
-                />
+              <div className="status-box">
+                <h3>HP: {archetype.base_stats.HP}</h3>
               </div>
 
-              <h3 className="text-xl text-center font-bold">
-                {data.label}
-              </h3>
+              <div className="deck-box">
+                <h3>Deck Base</h3>
+                <ul>
+                  {archetype.deck.base_cards.map(card => (
+                    <li key={card.id}>{card.name} x{card.quantity}</li>
+                  ))}
+                </ul>
+
+                <h3>Cartas Especiais</h3>
+                
+                <ul>
+                  {archetype.deck.special_cards.map(card => (
+                    <li key={card.id}>{card.name} x{card.quantity}</li>
+                  ))}
+                </ul>
+
+              </div>
             </div>
-          ))}
-        </div>
-
-        {/* DETALHES DO ARQUÉTIPO */}
-        {selected && (
-          <div className="mt-10 p-6 bg-neutral-800 rounded-xl border border-neutral-700">
-            <h3 className="text-2xl mb-4 font-bold">
-              Arquétipo Selecionado: {archetypes[selected].label}
-            </h3>
-
-            {/* STATS */}
-            <p className="text-lg font-semibold mb-4">
-              Distribuição de Stats:
-            </p>
-
-            {(() => {
-              const stats = calculateStats(
-                archetypes[selected].base_stats
-              );
-
-              const statsToDisplay = [
-                { key: "constitution", label: "Constituição" },
-                { key: "strength", label: "Força" },
-                { key: "agility", label: "Agilidade" },
-                { key: "HP", label: "HP" },
-                { key: "attack", label: "Ataque" },
-                { key: "defense", label: "Defesa" },
-                { key: "clinch", label: "Clinch" },
-              ];
-
-              const maxValue = Math.max(
-                ...statsToDisplay.map((s) => stats[s.key])
-              );
-
-              return statsToDisplay.map((stat) => (
-                <div key={stat.key} className="mb-4">
-                  <p className="uppercase text-sm mb-1">
-                    {stat.label}
-                  </p>
-                  <div className="w-full bg-neutral-700 rounded-full h-3">
-                    <div
-                      className="bg-green-500 h-3 rounded-full"
-                      style={{
-                        width: `${
-                          (stats[stat.key] / maxValue) * 100
-                        }%`,
-                      }}
-                    />
-                  </div>
-                  <p className="text-xs opacity-70 mt-1">
-                    Valor: {stats[stat.key].toFixed(1)}
-                  </p>
-                </div>
-              ));
-            })()}
           </div>
-        )}
+        );
+        })} 
+      </div>
 
-        {/* BOTÕES */}
-        <div className="flex justify-between mt-10">
-          <button
-            className="px-8 py-3 rounded-xl bg-neutral-700"
-            onClick={() => navigate("/userhome")}
-          >
-            Voltar
-          </button>
-
-          <button
-            className="px-8 py-3 rounded-xl bg-green-600 font-bold"
-            onClick={() => {
-              console.log("Robô criado:", { name, selected });
-              navigate("/userhome");
-            }}
-          >
-            Criar Robô
-          </button>
-        </div>
+      <div className="selection-display">
+        <h2>Arquétipo Selecionado: <span>{selectedName}</span></h2>
+      </div>     
+      <div className="input-group">
+        <label htmlFor="robot-name">Nome do seu Robô:</label>
+        <input 
+          id="robot-name"
+          type="text" 
+          placeholder="Digite o nome..." 
+          value={robotName} 
+          onChange={(e) => setRobotName(e.target.value)} // Atualiza o estado ao digitar
+        />
+        <button 
+          className="confirm-button" 
+          onClick={handleConfirmar}
+          disabled={!robotName || !selectedArchetype} // Desabilita se estiver incompleto
+        >
+          FINALIZAR CONSTRUÇÃO
+      </button>
       </div>
     </div>
   );

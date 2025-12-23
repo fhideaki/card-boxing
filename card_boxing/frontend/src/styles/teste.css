@@ -1,43 +1,116 @@
-.a4-container {
-  width: 300px;
-  aspect-ratio: 210 / 297;
-
-  background-color: #111;
-  border: 2px solid #444;
-
+/* Adicione isso ao topo do seu teste.css */
+.main-container {
   display: flex;
-  align-items: center;
-  justify-content: center;
-
-  overflow: hidden;
-
-  position: relative; /* MUITO IMPORTANTE */
+  flex-direction: row; /* Alinha os robôs lado a lado */
+  flex-wrap: wrap;     /* Permite quebrar linha se não couberem os 3 */
+  justify-content: center; /* Centraliza o grupo de cards na tela */
+  gap: 30px;           /* Espaço entre um robô e outro */
+  padding: 40px 20px;
+  background-color: #050505; /* Cor de fundo opcional para contraste */
+  min-height: 100vh;
 }
 
+.main-page-container {
+  display: flex;
+  flex-direction: column; /* Coloca os cards em cima e o texto embaixo */
+  align-items: center;    /* Centraliza horizontalmente */
+  gap: 40px;
+  padding: 40px;
+  min-height: 100vh;
+  background-color: #050505;
+}
 
-/* Imagem dentro do A4 */
+/* O container que segura apenas os cards lado a lado */
+.cards-grid-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 30px;
+  width: 100%;
+}
+/* Garante que cada par de carta ocupe o espaço correto */
+.page-wrapper {
+  aspect-ratio: 1 / 1.414;
+  position: relative;
+  width: 25vw;
+}
+
+.archetype-title {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: white;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 8px 20px;
+  border-radius: 4px;
+  z-index: 6; /* Acima da película, abaixo das infos */
+  white-space: nowrap;
+  pointer-events: none; /* Mouse ignora o texto para não bugar o hover */
+}
+.a4-container {
+  width: 25vw;
+  aspect-ratio: 1 / 1.414;
+  background-color: #111;
+  border: 2px solid #444;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative; 
+}
+
+/* 2. CONTEÚDO ESPECÍFICO */
+
 .a4-image {
   width: 100%;
   height: 100%;
-  object-fit: contain; /* não distorce */
+  object-fit: contain; 
 }
 
-.a4-container::after {
+.a4-info-container {
+    /* Posição inicial: Absoluta e AGORA SOBRE A IMAGEM */
+    position: absolute;
+    top: 0;
+    left: 0; /* MUITO IMPORTANTE: Posiciona exatamente onde a imagem está */
+
+    /* Ocultamento inicial */
+    opacity: 0;
+
+    /* REMOVEMOS O 'left' da transição. APENAS a opacidade transiciona. */
+    transition: opacity 0.5s ease-in-out; 
+    
+    z-index: 10;
+}
+
+/* Película (Deve ser aplicada APENAS ao a4-image-container) */
+.a4-image-container::after {
   content: "";
   position: absolute;
-  inset: 0; /* top, right, bottom, left = 0 */
-
-  background-color: rgba(0, 0, 0, 0.35); /* película escura */
-  opacity: 0;
-
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.35); 
+  opacity: 0; 
   transition: opacity 0.25s ease-in-out;
-  pointer-events: none; /* não interfere no mouse */
+  pointer-events: none;
+  z-index: 5; 
 }
 
-.a4-container:hover::after {
-  opacity: 1;
+/* 3. INTERAÇÃO HOVER (Se o seletor '+' falhar, use o seletor do page-wrapper) */
+
+/* Escurece a Imagem quando o mouse está sobre a área do wrapper */
+.page-wrapper:hover .a4-image-container::after {
+  opacity: 1; /* Escurece a imagem */
 }
 
+/* Mostra o Contêiner de Informações quando o mouse está sobre a área do wrapper */
+.page-wrapper:hover .a4-info-container {
+  opacity: 1; /* Torna visível */
+}
+
+
+/* 4. ESTILOS DO RADAR (Sem alterações) */
 .radar-chart {
   overflow: visible;
 }
@@ -59,3 +132,24 @@
   font-size: 12px;
   font-weight: bold;
 }
+
+.clickable-card {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+/* Um leve efeito de "clique" quando o usuário pressionar o mouse */
+.clickable-card:active {
+  transform: scale(0.98);
+}
+
+@keyframes highlight {
+  from { transform: scale(1.1); color: #fff; }
+  to { transform: scale(1); color: #00b4ff; }
+}
+
+.selection-display span {
+  display: inline-block;
+  animation: highlight 0.3s ease-out;
+}
+

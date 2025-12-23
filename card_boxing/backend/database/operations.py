@@ -92,3 +92,26 @@ def check_password(username, password_attempt):
     finally:
         cursor.close()
         conn.close()
+
+def insert_robot_in_db(robot_name, player_id, archetype_key):
+
+    conn = sqlite3.connect('card_game.db')
+    cursor = conn.cursor()
+
+    try: 
+
+        cursor.execute("""
+            INSERT INTO robots (robot_name, player_id, archetype_id)
+            VALUES (?, ?, (SELECT id FROM robot_archetypes WHERE key = ?))
+    """, (robot_name, player_id, archetype_key))
+        
+        conn.commit()
+        return True
+    except Exception as e:
+        # Em caso de qualquer erro de DB, falha o login por segurança
+        print(f"Erro ao verificar senha: {str(e)}")
+        return False
+            
+    finally:
+        cursor.close()
+        conn.close()
