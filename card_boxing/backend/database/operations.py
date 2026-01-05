@@ -3,33 +3,6 @@ import bcrypt
 
 DB_NAME = 'card_game.db'
 
-def setup_database():
-
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS players (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT NOT NULL UNIQUE,
-            password_hash TEXT NOT NULL
-        )
-    """)
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS robot_archetypes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            archetype_name TEXT NOT NULL UNIQUE,
-            base_constitution INTEGER NOT NULL,
-            base_strength INTEGER NOT NULL,
-            base_agility INTEGER NOT NULL,
-            base_hp INTEGER NOT NULL
-        )
-    """)
-    
-    conn.commit()
-    conn.close()
-
 def create_user(username, password):
 
     password_bytes = password.encode('utf-8')

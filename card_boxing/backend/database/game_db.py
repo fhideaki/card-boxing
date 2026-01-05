@@ -46,6 +46,14 @@ CREATE TABLE IF NOT EXISTS effects (
 )
 """)
 
+# Tabela de tipos (materiais/ elementos)
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS element_types (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    type_name TEXT NOT NULL UNIQUE
+)
+""")
+
 # Tabela de cartas
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS special_cards (
@@ -56,16 +64,41 @@ CREATE TABLE IF NOT EXISTS special_cards (
     description TEXT,
     effect_id INTEGER,
 
-    FOREIGN KEY (type) REFERENCES element_types(id)
+    FOREIGN KEY (type) REFERENCES element_types(id),
     FOREIGN KEY (effect_id) REFERENCES effects(id)
 )
 """)
 
-# Tabela de tipos (materiais/ elementos)
+# Tabela dos robôs criados
 cursor.execute("""
-CREATE TABLE IF NOT EXISTS element_types (
+CREATE TABLE IF NOT EXISTS robots (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    type_name TEXT NOT NULL UNIQUE
+    robot_name TEXT NOT NULL,
+    player_id INTEGER NOT NULL,
+    archetype_id INTEGER NOT NULL,
+    
+    FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE,
+    FOREIGN KEY (archetype_id) REFERENCES robot_archetypes (id)
+)
+""")
+
+# Tabela de partes do robô
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS robot_parts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    part_name TEXT NOT NULL UNIQUE,
+    description TEXT,
+    slot_id INTEGER NOT NULL,
+    type INTEGER NOT NULL,
+    card_id INTEGER,
+    stat_constitution_mod INTEGER DEFAULT 0,
+    stat_strength_mod INTEGER DEFAULT 0,
+    stat_agility_mod INTEGER DEFAULT 0,
+    stat_hp_mod INTEGER DEFAULT 0,
+
+    FOREIGN KEY (slot_id) REFERENCES robot_slots (id),
+    FOREIGN KEY (type) REFERENCES element_types(id)
+    FOREIGN KEY (card_id) REFERENCES special_cards (id)
 )
 """)
 
@@ -93,38 +126,22 @@ CREATE TABLE IF NOT EXISTS type_resistances (
 )
 """)
 
-# Tabela de partes do robô
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS robot_parts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    part_name TEXT NOT NULL UNIQUE,
-    description TEXT,
-    slot_id INTEGER NOT NULL,
-    type INTEGER NOT NULL,
-    card_id INTEGER,
-    stat_constitution_mod INTEGER DEFAULT 0,
-    stat_strength_mod INTEGER DEFAULT 0,
-    stat_agility_mod INTEGER DEFAULT 0,
-    stat_hp_mod INTEGER DEFAULT 0,
-
-    FOREIGN KEY (slot_id) REFERENCES robot_slots (id),
-    FOREIGN KEY (type) REFERENCES element_types(id)
-    FOREIGN KEY (card_id) REFERENCES special_cards (id)
-)
-""")
-
-# Tabela de todas as cartas que o robô dispõe
+# Tabela de cartas possíveis para cada robô
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS robot_available_cards (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     robot_id INTEGER NOT NULL,
     card_id INTEGER NOT NULL,
     quantity INTEGER NOT NULL DEFAULT 1,
+    source TEXT,
 
     FOREIGN KEY (robot_id) REFERENCES robots(id) ON DELETE CASCADE,
-    FOREIGN KEY (card_id) REFERENCES special_cards(id)
+    FOREIGN KEY (card_id) REFERENCES special_cards(id),
+
+    UNIQUE (robot_id, card_id)  
 )
 """)
+
 
 # Tabela do deck ativo do robô
 cursor.execute("""
@@ -136,35 +153,6 @@ CREATE TABLE IF NOT EXISTS robot_decks (
 
     FOREIGN KEY (robot_id) REFERENCES robots(id) ON DELETE CASCADE,
     FOREIGN KEY (card_id) REFERENCES special_cards(id)
-)
-""")
-
-# Tabela de cartas possíveis para cada robô
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS robot_available_cards (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    robot_id INTEGER NOT NULL,
-    card_id INTEGER NOT NULL,
-    quantity INTEGER NOT NULL DEFAULT 1,
-    source TEXT,  -- opcional: "archetype", "equipped_part", "reward", etc.
-
-    FOREIGN KEY (robot_id) REFERENCES robots(id) ON DELETE CASCADE,
-    FOREIGN KEY (card_id) REFERENCES special_cards(id),
-
-    UNIQUE (robot_id, card_id) -- evita duplicatas
-)
-""")
-
-# Tabela dos robôs criados
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS robots (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    robot_name TEXT NOT NULL,
-    player_id INTEGER NOT NULL,
-    archetype_id INTEGER NOT NULL,
-    
-    FOREIGN KEY (player_id) REFERENCES players (id) ON DELETE CASCADE,
-    FOREIGN KEY (archetype_id) REFERENCES robot_archetypes (id)
 )
 """)
 

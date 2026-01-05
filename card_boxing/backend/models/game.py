@@ -35,7 +35,7 @@ class Game:
 
     def game_start(self):
 
-        self.gamejudge.log_message("Gooooood Evening ladies and gentleman!! Welcome to the most feracious fight of the world, the Robot Mayhem Arena!!!!!!!!")
+        self.gamejudge.log_message("Gooooood Evening ladies and gentlemen!! Welcome to the most feracious fight of the world, the Robot Mayhem Arena!!!!!!!!")
         self.gamejudge.log_message("(crowd cheering noises)")
 
         self.gamejudge.log_message(f"In the Red corner, weighting {self.player1.initial_constitution} of pure destruction is {self.player1.robot.robot_name}! And his coach {self.player1.name} assisting in the corner.")
