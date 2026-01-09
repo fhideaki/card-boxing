@@ -95,6 +95,7 @@ CREATE TABLE IF NOT EXISTS robot_parts (
     stat_strength_mod INTEGER DEFAULT 0,
     stat_agility_mod INTEGER DEFAULT 0,
     stat_hp_mod INTEGER DEFAULT 0,
+    image_url TEXT NOT NULL DEFAULT 'card_boxing\backend\static\parts\default.png'
 
     FOREIGN KEY (slot_id) REFERENCES robot_slots (id),
     FOREIGN KEY (type) REFERENCES element_types(id)
