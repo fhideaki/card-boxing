@@ -8,12 +8,15 @@ export default function MyRobots() {
 
   useEffect(() => {
     async function fetchRobots() {
+      const userId = localStorage.getItem("playerId")
+      if (!userId) return;
+
       try {
-        const response = await fetch("http://127.0.0.1:5000/api/my_robots");
+        const response = await fetch(`http://127.0.0.1:5000/api/my_robots?user_id=${userId}`);
         const data = await response.json();
         setRobots(data.robots);
       } catch (error) {
-        console.log("Erro ao carregar robôs");
+        console.log("Erro ao carregar robôs", error);
       }
     }
     fetchRobots();

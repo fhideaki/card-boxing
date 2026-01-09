@@ -56,6 +56,7 @@ def get_user_robots():
         return jsonify({"error": "user_id is required"}), 400
 
     conn = sqlite3.connect('card_game.db')
+    conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
 
     # Buscar todos os robôs do jogador
@@ -91,16 +92,17 @@ def get_user_robots():
             "id": robot["id"],
             "name": robot["robot_name"],
             "archetype": robot["archetype_name"],
-            "base_stats": {
+            "stats": {
                 "constitution": robot["base_constitution"],
                 "strength": robot["base_strength"],
                 "agility": robot["base_agility"],
                 "hp": robot["base_hp"]
             },
-            "equipped_parts": [
+            "parts": [
                 {
                     "slot": p["slot_name"],
                     "name": p["part_name"],
+                    "icon": "default.png",
                     "type": p["type"],
                     "mods": {
                         "constitution": p["stat_constitution_mod"],
