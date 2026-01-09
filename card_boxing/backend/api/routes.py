@@ -47,6 +47,7 @@ def login():
     else:
         return jsonify({"message": "Credenciais inválidas. Tente novamente."}), 401
 
+# Rota para buscar os robôs do jogador
 @api.route("/robots", methods=["GET"])
 def get_user_robots():
     user_id = request.args.get("user_id")
@@ -122,6 +123,7 @@ def get_user_robots():
 def get_archetypes():
     return jsonify(robot_archetypes)
 
+# Rota para verificar cada arquétipo
 @api.route("/archetypes/<string:archetype_key>/preview")
 def archetype_preview(archetype_key):
     archetype = robot_archetypes.get(archetype_key)
@@ -143,6 +145,7 @@ def archetype_preview(archetype_key):
         "deck":deck
     })
 
+# Rota para criar um "preview" de todos os robôs para o frontend acessar e pegar os atributos.
 @api.route("/archetypes/all/preview")
 def all_archetypes_preview():
     all_previews = []
@@ -169,6 +172,7 @@ def all_archetypes_preview():
     # Retorna a lista completa de objetos
     return jsonify(all_previews)
 
+# Rota para criar o robô
 @api.route('/robots/create', methods=["POST"])
 def create_robot():
     data = request.get_json()
@@ -177,7 +181,7 @@ def create_robot():
     player_id = data.get('player_id')
     archetype_key = data.get('archetype_key')
 
-    if not robot_name or not archetype_key:
+    if not all([robot_name, player_id, archetype_key]):
         return jsonify({"message": "Dados incompletos"}), 400
     
     insert_robot_in_db(robot_name, player_id, archetype_key)

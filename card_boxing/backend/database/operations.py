@@ -72,14 +72,15 @@ def insert_robot_in_db(robot_name, player_id, archetype_key):
     cursor = conn.cursor()
 
     try: 
-
         cursor.execute("""
             INSERT INTO robots (robot_name, player_id, archetype_id)
-            VALUES (?, ?, (SELECT id FROM robot_archetypes WHERE key = ?))
+            VALUES (?, ?, (SELECT id FROM robot_archetypes WHERE archetype_name = ?))
     """, (robot_name, player_id, archetype_key))
         
+        robot_id = cursor.lastrowid
         conn.commit()
-        return True
+        return robot_id
+    
     except Exception as e:
         # Em caso de qualquer erro de DB, falha o login por segurança
         print(f"Erro ao verificar senha: {str(e)}")
