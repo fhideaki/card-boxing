@@ -8,6 +8,18 @@ export default function MyRobots() {
     const [arquetipoSelecionado, setArquetipoSelecionado] = useState("");
     const [tipoFraquezaSelecionado, setTipoFraquezaSelecionado] = useState("");
     const [tipoResistenciaSelecionado, setTipoResistenciaSelecionado] = useState("");
+
+    // Estados para a criação de robô (modal)
+    const [modalAberto, setModalAberto] = useState(false);
+    const [novoNome, setNovoNome] = useState("");
+    const [novoArquetipo, setNovoArquetipo] = useState("");
+
+    // Estados para as ações dos robôs
+    const [modalEdicaoAberto, setModalEdicaoAberto] = useState(false);
+    const [roboSendoEditado, setRoboSendoEditado] = useState(null);
+
+    // Estados para as abas do modal (estilo Pokémon Showdown)
+    const [abaAtual, setAbaAtual] = useState("menu");
     
     // Dados simulados dos robôs
     const listaRobos = [
@@ -34,6 +46,9 @@ export default function MyRobots() {
         hp: 120
     }
     ]
+
+    // Dados simulados dos arquétipos
+    const arquetiposDisponiveis = ["Tanque", "Atirador", "Suporte", "Assassino"];
 
     // Criando as opções dos dropdowns de forma dinâmica
     // Usando o objeto Set para garantir que não ocorram repetições
@@ -90,6 +105,11 @@ export default function MyRobots() {
                         {opcoesResistencias.map(r => <option key={r} value={r}>{r}</option>)}
                     </select>
                 </div>
+
+                {/* Botão para criar robô */}
+                <div>
+                    <button onClick={() => setModalAberto(true)}>Criar Robô</button>
+                </div>
             </div>
 
             <table border="1">
@@ -105,7 +125,6 @@ export default function MyRobots() {
                         <th>Agilidade</th>
                         <th>HP</th>
                         <th>Ações</th>
-{/* ------------------------PAREI AQUI, PRECISO DEFINIR AS AÇÕES (RENOMEAR, DELETAR, VER DECKS)------------------------- */}
                     </tr>
                 </thead>
                 <tbody>
@@ -131,10 +150,118 @@ export default function MyRobots() {
                             <td>{robo.forca}</td>
                             <td>{robo.agilidade}</td>
                             <td>{robo.hp}</td>
+                            <td>
+                                <button onClick={() =>{
+                                    setRoboSendoEditado(robo);
+                                    setModalEdicaoAberto(true);
+                                }}>
+                                    Editar
+                                </button>
+
+                                <button onClick={() => {
+                                    // Lógica simples de deletar, por enquanto é apenas um aviso ou filtro
+                                    if(window.confirm(`Deseja deletar o robô ${robo.nome}?`)) {
+                                        // Aqui vai entrar a função para excluir o robô
+                                        console.log("Deletando robô com id: ", robo.id);
+                                    }
+                                }}>
+                                    Deletar
+                                </button>
+                            </td>
                         </tr>
                     ))}
                 </tbody>
             </table>  
+
+            {/* Modal */}
+            {modalAberto && (
+                <div className="modal-overlay">
+                    <div>
+                        <h2>Criar Novo Robô</h2>
+
+                        <div>
+                            <label>Digite o nome do robô: </label>
+                            <input
+                                type="text"
+                                value={novoNome}
+                                onChange={(e) => setNovoNome(e.target.value)}
+                            />
+                        </div>
+
+                        <div>
+                            <label>Arquétipo: </label>
+                            <select value={novoArquetipo} onChange={(e) => setNovoArquetipo(e.target.value)}>
+                                <option value="">Selecione o arquétipo</option>
+                                {arquetiposDisponiveis.map(arq => (
+                                    <option key={arq} value={arq}>{arq}</option>
+                                ))}
+                            </select>
+                        </div>
+                        
+                        {/* Botão para salvar o robô novo, preciso adicionar a lógica para inserir no banco de dados */}
+                        <button onClick={() => setModalAberto(false)}>
+                            Criar Robô
+                        </button>
+                        <button onClick={() => setModalAberto(false)}>Cancelar</button>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal da edição */}
+            {modalEdicaoAberto && (
+                <div className="modal-overlay">
+                    <div>
+                        <label>Nome do Robô: </label>
+                        <input
+                            type="text"
+                            value={roboSendoEditado?.nome || ""}
+                            onChange={(e) => setRoboSendoEditado({
+                                ...roboSendoEditado,
+                                nome: e.target.value
+                            })}
+                        />
+                        <button onClick={() => setModalEdicaoAberto(false)}>Fechar</button>
+                    </div>
+
+                    <hr />
+
+                    {/* Janela em branco - Futuramente vai ser a parte de customizar peças e também os baralhos */}
+                    <div>
+                        {/* Abas do modal */}
+                        {abaAtual === "menu" && (
+                            <div>
+                                <button
+                                    onClick={() => setAbaAtual("pecas")}
+                                >
+                                    Peças
+                                </button>
+                                <button
+                                    onClick={() => setAbaAtual("decks")}
+                                >
+                                    Decks
+                                </button>
+                            </div>
+                        )}
+
+                        {abaAtual === "pecas" && (
+                            <div>
+                                <button onClick={() => setAbaAtual("menu")}>Voltar</button>
+                                <h3>Editor de Peças (Em Branco)</h3>
+                                {/* Construir lógica das peças futuramente */}
+                            </div>
+                        )}
+
+                        {abaAtual === "decks" && (
+                            <div>
+                                <button onClick={() => setAbaAtual("menu")}>Voltar</button>
+                                <h3>Editor de Decks (Em Branco)</h3>
+                                {/* Construir lógica dos decks futuramente */}
+                            </div>
+                        )}
+
+                    </div>
+                </div>
+            )}
         </div>      
     )
 }
