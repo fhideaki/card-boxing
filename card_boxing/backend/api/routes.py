@@ -5,9 +5,12 @@ from models.static import *
 import sqlite3
 from models.robot import *
 from models.deck import *
+from routes.parts import parts_bp
 
 # Construtor do flask/ Flask constructor
 api = Blueprint('api', __name__)
+
+api.register_blueprint(parts_bp)
 
 # Rota de Registro de Jogador
 @api.route('/register', methods=['POST'])

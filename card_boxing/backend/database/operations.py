@@ -89,3 +89,51 @@ def insert_robot_in_db(robot_name, player_id, archetype_key):
     finally:
         cursor.close()
         conn.close()
+
+# Retorna todas as peças no banco de dados
+def get_parts_from_db():
+    
+    conn = sqlite3.connect('card_game.db')
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    query = """
+    SELECT
+        p.*,
+        s.slot_name AS slot_name,
+        t.type_name AS type_name
+    FROM robot_parts as p
+    JOIN robot_slots s ON p.slot_id = s.id
+    JOIN element_types t ON p.type = t.id
+    """
+
+    cursor.execute(query)
+
+    all_parts = cursor.fetchall()
+
+    return all_parts
+
+# Função auxiliar para buscar IDs das fraquezas ou das resistências do tipo
+def get_details(table_name, type_id, col_name):
+
+    conn = sqlite3.connect('card_game.db')
+    cursor = conn.cursor()
+
+    cursor.execute(f"SELECT {col_name} FROM {table_name} WHERE type_id = ?", (type_id, ))
+    return [row[0] for row in cursor.fetchall()]
+
+# Função auxiliar para pegar os nomes dos tipos com base no ID
+def get_type_names(table_name, type_id, col_name):
+
+    conn = sqlite3.connect('card_game.db')
+    cursor = conn.cursor()
+
+    query = f"""
+        SELECT et.type_name
+        FROM {table_name} t
+        JOIN element_types et ON t.{col_name} = et.id
+        WHERE t.type_id = ?
+    """
+
+    cursor.execute(query, (type_id,))
+    return [row[0] for row in cursor.fetchall()]

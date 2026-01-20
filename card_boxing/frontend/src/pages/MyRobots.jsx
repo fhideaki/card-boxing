@@ -18,6 +18,9 @@ export default function MyRobots() {
     const [modalEdicaoAberto, setModalEdicaoAberto] = useState(false);
     const [roboSendoEditado, setRoboSendoEditado] = useState(null);
 
+    // Estado para carregar as peças
+    const [equipamento, setEquipamento] = useState(roboSendoEditado?.slots || {});
+
     // Estados para as abas do modal (estilo Pokémon Showdown)
     const [abaAtual, setAbaAtual] = useState("menu");
     
@@ -50,6 +53,123 @@ export default function MyRobots() {
     // Dados simulados dos arquétipos
     const arquetiposDisponiveis = ["Tanque", "Atirador", "Suporte", "Assassino"];
 
+    // Dados simulados dos slots
+    const slotsConfig = [
+    { id: "Cabeça", label: "Cabeça" },
+    { id: "Peito", label: "Corpo" },
+    { id: "Braço", label: "Braço Direito" },
+    { id: "Braço", label: "Braço Esquerdo" },
+    { id: "Pernas", label: "Perna Direita" },
+    { id: "Pernas", label: "Perna Esquerda" },
+    { id: "Costas", label: "Costas" }
+    ];
+
+    // Dados simulados das peças
+    const listaPecas = [
+    {
+        id: 1,
+        nome: "Núcleo de Energia Simples",
+        slot: "Peito",
+        tipo: "Eletrônico",
+        conmod: 5,
+        strmod: 0,
+        agimod: 0,
+        hpmod: 50,
+        fraquezas: ["Água"],
+        resistencias: ["Físico"],
+        liberaCartas: [
+            { carta: "Recarregar", precisaDe: null }
+        ]
+    },
+    {
+        id: 2,
+        nome: "Processador de Combate",
+        slot: "Cabeça",
+        tipo: "Eletrônico",
+        conmod: 0,
+        strmod: 2,
+        agimod: 3,
+        hpmod: 10,
+        fraquezas: ["Elétrico"],
+        resistencias: [],
+        liberaCartas: [
+            { carta: "Análise de Dados", precisaDe: null }
+        ]
+    },
+    {
+        id: 3,
+        nome: "Tanque de Combustível",
+        slot: "Costas",
+        tipo: "Suporte",
+        conmod: 3,
+        strmod: 0,
+        agimod: -1,
+        hpmod: 20,
+        fraquezas: ["Fogo"],
+        resistencias: ["Explosão"],
+        liberaCartas: [
+            { carta: "Explosão de Nafta", precisaDe: "Lançador de Chamas" }
+        ]
+    },
+    {
+        id: 4,
+        nome: "Lançador de Chamas",
+        slot: "Braço",
+        tipo: "Fogo",
+        conmod: 0,
+        strmod: 4,
+        agimod: 0,
+        hpmod: 15,
+        fraquezas: ["Água"],
+        resistencias: ["Fogo"],
+        liberaCartas: [
+            { carta: "Incinerar", precisaDe: null },
+            { carta: "Explosão de Nafta", precisaDe: "Tanque de Combustível" }
+        ]
+    },
+    {
+        id: 5,
+        nome: "Propulsor Hidráulico",
+        slot: "Pernas",
+        tipo: "Mecânico",
+        conmod: 2,
+        strmod: 0,
+        agimod: 5,
+        hpmod: 30,
+        fraquezas: ["Gelo"],
+        resistencias: ["Físico"],
+        liberaCartas: [
+            { carta: "Investida", precisaDe: null }
+        ]
+    },
+    {
+        id: 6,
+        nome: "Placa de Titânio",
+        slot: "Peito",
+        tipo: "Defesa",
+        conmod: 8,
+        strmod: -1,
+        agimod: -2,
+        hpmod: 100,
+        fraquezas: [],
+        resistencias: ["Físico", "Físico"], // Exemplo de resistência dupla
+        liberaCartas: []
+    }
+    ];
+
+    // Dados simulados dos decks
+    const [listaDecks, setListaDecks] = useState([
+        { id: 1, nome: "Deck Inicial", cartas: [] },
+        { id: 2, nome: "Deck de Fogo", cartas: [] }
+    ]);
+
+    //Verificação do estado do deck
+    const verificarStatusDeck = (deck) => {
+    // No futuro, aqui compararemos deck.cartas com as cartas liberadas pelas peças em 'equipamento'
+    // Por enquanto, vamos retornar "Válido" apenas para ilustrar
+        return "Válido"; 
+    };
+
     // Criando as opções dos dropdowns de forma dinâmica
     // Usando o objeto Set para garantir que não ocorram repetições
     const opcoesArquetipos = [...new Set(listaRobos.map(r => r.arquetipo))];
@@ -65,6 +185,27 @@ export default function MyRobots() {
 
         return bateNome && bateArquetipo && bateFraqueza && bateResistencia;
     });
+
+    // Lógica para somar os atributos do que estiver equipado
+    const calcularTotal = (atributo) => {
+        // Começa com o valor base (se houver) ou zero
+        let total = 0;
+
+        // Percorre os slots e soma os atributos correspondentes para cada peça
+        Object.values(equipamento).forEach(peca => {
+            if (peca) total += peca[atributo] || 0;
+        });
+        return total;
+    };
+
+    // Para fraquezas e resistências, somando as ocorrências nas listas
+    const listaTotal = (campo) => {
+        const todos = [];
+        Object.values(equipamento).forEach(peca => {
+            if (peca && peca[campo]) todos.push(...peca[campo]);
+        });
+        return todos; 
+    };
 
     return (
         <div>
@@ -246,16 +387,116 @@ export default function MyRobots() {
                         {abaAtual === "pecas" && (
                             <div>
                                 <button onClick={() => setAbaAtual("menu")}>Voltar</button>
-                                <h3>Editor de Peças (Em Branco)</h3>
-                                {/* Construir lógica das peças futuramente */}
+                                <h3>Editor de Peças</h3>
+
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Arquétipo</th>
+                                            <th>Fraquezas</th>
+                                            <th>Resistências</th>
+                                            <th>CON</th>
+                                            <th>FOR</th>
+                                            <th>AGI</th>
+                                            <th>HP</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>{roboSendoEditado?.arquetipo}</td>
+                                            <td>
+                                                {[...new Set(listaTotal("fraquezas"))].map(fra => {
+                                                    const qtd = listaTotal("fraquezas").filter(f => f === fra).length;
+                                                    return <span key={fra}>{fra} ({qtd}) </span>
+                                                })}</td>
+                                            <td>
+                                                {[...new Set(listaTotal("resistencias"))].map(res => {
+                                                    const qtd = listaTotal("resistencias").filter(r => r === res).length;
+                                                    return <span key={res}>{res} ({qtd}) </span>
+                                                })}
+                                            </td>
+                                            <td>{calcularTotal("conmod")}</td>
+                                            <td>{calcularTotal("strmod")}</td>
+                                            <td>{calcularTotal("agimod")}</td>
+                                            <td>{calcularTotal("hpmod")}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div>
+                                    <p>Selecione as peças para os slots abaixo:</p>
+                                    <div>
+                                        {slotsConfig.map((slot, index) => {
+                                            // Criando uma chave única para o estado de cada equipamento
+                                            const chaveSlot = `${slot.id}_${index}`;
+                                            const pecaEquipada = equipamento[chaveSlot];
+
+                                            return (
+                                                <div>
+                                                    <label>{slot.label}:</label>
+                                                    <select
+                                                        value={pecaEquipada?.id || ""}
+                                                        onChange={(e) => {
+                                                            const idSelecionado = parseInt(e.target.value);
+                                                            const pecaEncontrada = listaPecas.find(p => p.id === idSelecionado);
+
+                                                            // Atualiza o estado mantendo as outras peças e trocando somente a selecionada
+                                                            setEquipamento(prev => ({
+                                                                ...prev,
+                                                                [chaveSlot]: pecaEncontrada || null
+                                                            }));
+                                                        }}>
+                                                            <option value="">(Nenhuma)</option>
+                                                            {/* Filtrando a lista global para mostrar apenas peças deste slot */}
+                                                            {listaPecas
+                                                                .filter(p => p.slot === slot.id)
+                                                                .map(p => (
+                                                                    <option key={p.id} value={p.id}>{p.nome}</option>
+                                                                ))
+                                                            }
+                                                        </select>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                </div>
                             </div>
                         )}
 
                         {abaAtual === "decks" && (
                             <div>
-                                <button onClick={() => setAbaAtual("menu")}>Voltar</button>
-                                <h3>Editor de Decks (Em Branco)</h3>
-                                {/* Construir lógica dos decks futuramente */}
+                                <h3>Editor de Decks</h3>
+                                <div>
+                                    <button onClick={() => setAbaAtual("menu")}>Voltar</button>
+                                    <button onClick={() => {/* Lógica para novo deck */}}>Criar novo deck</button>
+                                </div>
+
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Nome do Deck</th>
+                                            <th>Estado</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {listaDecks.map((deck, index) => (
+                                            <tr key={deck.id}>
+                                                <td>{index + 1}</td>
+                                                <td>{deck.nome}</td>
+                                                <td>{verificarStatusDeck(deck)}</td>
+                                                <td>
+                                                    <button onClick={() => {/* Abrir editor do deck */}}>
+                                                        Editar
+                                                    </button>
+                                                    <button onClick={() => {/* Deletar Deck */}}>
+                                                        Excluir
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
                         )}
 

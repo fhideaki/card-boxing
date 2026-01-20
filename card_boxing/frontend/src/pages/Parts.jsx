@@ -1,4 +1,4 @@
-import React, { useState, useSyncExternalStore } from "react";
+import React, { useEffect, useState, useSyncExternalStore } from "react";
 
 export default function Parts() {
     // Estado para armazenar o que o usuário digita
@@ -16,62 +16,26 @@ export default function Parts() {
     const [hpModSelecionado, setHpModSelecionado] = useState("");
 
     // Dados simulados das cartas
-    const listaPecas = [
-        {
-            id: 1,
-            nome: "Núcleo de Energia Simples",
-            slot: "Peito",
-            tipo: "Eletrônico",
-            conmod: 5,
-            strmod: 0,
-            agimod: 0,
-            hpmod: 50,
-            fraquezas: ["Água"],
-            resistencias: ["Físico"],
-            // Peça que não libera carta ou libera sozinha
-            liberaCartas: [
-                { carta: "Recarregar", precisaDe: null }
-            ]
-        },
-        {
-            id: 2,
-            nome: "Lançador de Chamas",
-            slot: "Braço",
-            tipo: "Fogo",
-            conmod: 0,
-            strmod: 8,
-            agimod: -2,
-            hpmod: 0,
-            fraquezas: ["Gelo"],
-            resistencias: ["Fogo"],
-            // Precisa do Tanque de Combustível para a carta especial
-            liberaCartas: [
-                { carta: "Chama Constante", precisaDe: null },
-                { carta: "Explosão de Nafta", precisaDe: "Tanque de Combustível" }
-            ]
-        },
-        {
-            id: 3,
-            nome: "Tanque de Combustível",
-            slot: "Costas",
-            tipo: "Suporte",
-            conmod: 3,
-            strmod: 0,
-            agimod: -1,
-            hpmod: 20,
-            fraquezas: ["Fogo"],
-            resistencias: ["Explosão"],
-            // Precisa do Lançador de Chamas para a mesma carta
-            liberaCartas: [
-                { carta: "Explosão de Nafta", precisaDe: "Lançador de Chamas" }
-            ]
-        }
-    ];
+    const [listaPecas, setListaPecas] = useState([]);
+
+    useEffect(() => {
+        const carregarPecas = async () => {
+            try {
+                const resposta = await fetch('http://127.0.0.1:5000/api/parts');
+                const dados = await resposta.json();
+                setListaPecas(dados);
+            } catch (erro) {
+                console.error("Erro ao buscar peças:", erro);
+            }
+        };
+
+        carregarPecas();
+    }, []);
     
     // Criando as opções dos dropdowns de forma dinâmica
     // Usando o objeto Set para garantir que não ocorram repetições
     const opcoesSlots = [...new Set(listaPecas.map(p => p.slot))];
-    const opcoesTipos = [...new Set(listaPecas.map(p => p.tipo))];
+    const opcoesTipos = [...new Set(listaPecas.map(p => p.tipo_nome))];
     // Para as fraquezas, resistências e cartas, pode existir uma lista, então ela precisa ser achatada antes.
     const opcoesFraquezas = [...new Set(listaPecas.flatMap(p => p.fraquezas))]; 
     const opcoesResistencias = [...new Set(listaPecas.flatMap(p => p.resistencias))]; 
@@ -85,7 +49,7 @@ export default function Parts() {
     const pecasFiltradas = listaPecas.filter((peca) => {
         const bateNome = peca.nome.toLowerCase().includes(buscaPeca.toLowerCase());
         const bateSlot = slotSelecionado === "" || peca.slot === slotSelecionado;
-        const bateTipo = tipoSelecionado === "" || peca.tipo === tipoSelecionado;
+        const bateTipo = tipoSelecionado === "" || peca.tipo_nome === tipoSelecionado;
         const bateFraqueza = tipoFraquezaSelecionado === "" || peca.fraquezas.includes(tipoFraquezaSelecionado);
         const bateResistencia = tipoResistenciaSelecionado === "" || peca.resistencias.includes(tipoResistenciaSelecionado);
         const bateCarta = cartaSelecionada === "" || peca.liberaCartas.some(item => item.carta === cartaSelecionada);
@@ -218,9 +182,9 @@ export default function Parts() {
                             <td>{peca.id}</td>
                             <td>{peca.nome}</td>
                             <td>{peca.slot}</td>
-                            <td>{peca.tipo}</td>
-                            <td>{peca.fraquezas}</td>
-                            <td>{peca.resistencias}</td>
+                            <td>{peca.tipo_nome}</td>
+                            <td>{peca.fraquezas.join(', ')}</td>
+                            <td>{peca.resistencias.join(', ')}</td>
                             <td>{peca.conmod}</td>
                             <td>{peca.strmod}</td>
                             <td>{peca.agimod}</td>
