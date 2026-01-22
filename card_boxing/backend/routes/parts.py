@@ -16,8 +16,8 @@ def get_parts():
 
     for part in all_parts:
 
-        fraquezas = get_type_names('type_weaknesses', part['type'], 'weak_to_id')
-        resistencias = get_type_names('type_resistances', part['type'], 'resists_id')
+        fraquezas = get_type_names('type_weaknesses', part['type'], 'type_id', 'weak_to_id')
+        resistencias = get_type_names('type_resistances', part['type'], 'type_id', 'resists_id')
 
         part_dict = {
             'id': part["id"],
@@ -27,7 +27,8 @@ def get_parts():
             'slot': part['slot_name'],
             'tipo_id': part['type'],
             'tipo_nome': part['type_name'],
-            'liberaCartas': [{"carta": part['card_id']}] if part['card_id'] else [],
+            'card_id': part['card_id'],
+            'liberaCartas': [{"carta": part['card_name']}] if part['card_name'] else [],
             'fraquezas': fraquezas,
             'resistencias': resistencias,
             'conmod': part['stat_constitution_mod'],

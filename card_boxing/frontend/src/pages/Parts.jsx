@@ -53,10 +53,10 @@ export default function Parts() {
         const bateFraqueza = tipoFraquezaSelecionado === "" || peca.fraquezas.includes(tipoFraquezaSelecionado);
         const bateResistencia = tipoResistenciaSelecionado === "" || peca.resistencias.includes(tipoResistenciaSelecionado);
         const bateCarta = cartaSelecionada === "" || peca.liberaCartas.some(item => item.carta === cartaSelecionada);
-        const bateConMod = conModSelecionado === "" || peca.conmod === conModSelecionado;
-        const bateStrMod = strModSelecionado === "" || peca.strmod === strModSelecionado;
-        const bateAgiMod = agiModSelecionado === "" || peca.agimod === agiModSelecionado;
-        const bateHpMod = hpModSelecionado === "" || peca.hpmod === hpModSelecionado;
+        const bateConMod = conModSelecionado === "" || peca.conmod === Number(conModSelecionado);
+        const bateStrMod = strModSelecionado === "" || peca.strmod === Number(strModSelecionado);
+        const bateAgiMod = agiModSelecionado === "" || peca.agimod === Number(agiModSelecionado);
+        const bateHpMod = hpModSelecionado === "" || peca.hpmod === Number(hpModSelecionado);
 
         console.log(`Peça: ${peca.nome} | Bate Slot: ${bateSlot} | Bate Tipo: ${bateTipo}`);
         return bateNome && bateSlot && bateTipo && bateFraqueza && bateResistencia && bateCarta && bateConMod && bateStrMod && bateAgiMod && bateHpMod;

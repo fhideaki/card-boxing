@@ -101,10 +101,12 @@ def get_parts_from_db():
     SELECT
         p.*,
         s.slot_name AS slot_name,
-        t.type_name AS type_name
+        t.type_name AS type_name,
+        c.name AS card_name
     FROM robot_parts as p
     JOIN robot_slots s ON p.slot_id = s.id
     JOIN element_types t ON p.type = t.id
+    LEFT JOIN cards c ON p.card_id = c.id
     """
 
     cursor.execute(query)
@@ -123,7 +125,7 @@ def get_details(table_name, type_id, col_name):
     return [row[0] for row in cursor.fetchall()]
 
 # Função auxiliar para pegar os nomes dos tipos com base no ID
-def get_type_names(table_name, type_id, col_name):
+def get_type_names(table_name, type_id, col_to_return, col_to_filter):
 
     conn = sqlite3.connect('card_game.db')
     cursor = conn.cursor()
@@ -131,8 +133,8 @@ def get_type_names(table_name, type_id, col_name):
     query = f"""
         SELECT et.type_name
         FROM {table_name} t
-        JOIN element_types et ON t.{col_name} = et.id
-        WHERE t.type_id = ?
+        JOIN element_types et ON t.{col_to_return} = et.id
+        WHERE t.{col_to_filter} = ?
     """
 
     cursor.execute(query, (type_id,))
