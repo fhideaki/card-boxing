@@ -6,11 +6,15 @@ import sqlite3
 from models.robot import *
 from models.deck import *
 from routes.parts import parts_bp
+from routes.cards import cards_bp
+from routes.robots import robots_bp
 
 # Construtor do flask/ Flask constructor
 api = Blueprint('api', __name__)
 
 api.register_blueprint(parts_bp)
+api.register_blueprint(cards_bp)
+api.register_blueprint(robots_bp)
 
 # Rota de Registro de Jogador
 @api.route('/register', methods=['POST'])
@@ -50,145 +54,56 @@ def login():
     else:
         return jsonify({"message": "Credenciais inválidas. Tente novamente."}), 401
 
-# Rota para buscar os robôs do jogador
-@api.route("/robots", methods=["GET"])
-def get_user_robots():
-    user_id = request.args.get("user_id")
+# # Envio dos arquétipos e dos dados base
+# @api.route("/archetypes", methods=["GET"])
+# def get_archetypes():
+#     return jsonify(robot_archetypes)
 
-    if not user_id:
-        return jsonify({"error": "user_id is required"}), 400
+# # Rota para verificar cada arquétipo
+# @api.route("/archetypes/<string:archetype_key>/preview")
+# def archetype_preview(archetype_key):
+#     archetype = robot_archetypes.get(archetype_key)
 
-    conn = sqlite3.connect('card_game.db')
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
+#     if not archetype:
+#         return jsonify({"error": "Arquétipo não encontrado"}), 404
 
-    # Buscar todos os robôs do jogador
-    cursor.execute("""
-        SELECT r.id, r.robot_name, r.archetype_id, a.archetype_name,
-               a.base_constitution, a.base_strength, a.base_agility, a.base_hp
-        FROM robots r
-        JOIN robot_archetypes a ON r.archetype_id = a.id
-        WHERE r.player_id = ?
-    """, (user_id,))
+#     base = archetype["base_stats"]
+#     secondary = calculate_secondary_stats(base)
 
-    robots = cursor.fetchall()
+#     deck = build_deck(archetype["deck"], card_list)
 
-    robots_list = []
+#     return jsonify({
+#         "key": archetype_key,
+#         "label": archetype["label"],
+#         "image": archetype["image"],
+#         "base_stats": base,
+#         "secondary_stats": secondary,
+#         "deck":deck
+#     })
 
-    for robot in robots:
-        robot_id = robot["id"]
+# # Rota para criar um "preview" de todos os robôs para o frontend acessar e pegar os atributos.
+# @api.route("/archetypes/all/preview")
+# def all_archetypes_preview():
+#     all_previews = []
 
-        # Buscar partes equipadas para esse robô
-        cursor.execute("""
-            SELECT p.part_name, p.description, p.type, p.stat_constitution_mod,
-                   p.stat_strength_mod, p.stat_agility_mod, p.stat_hp_mod,
-                   s.slot_name
-            FROM robot_equipped_parts rep
-            JOIN robot_parts p ON rep.part_id = p.id
-            JOIN robot_slots s ON rep.slot_id = s.id
-            WHERE rep.robot_id = ?
-        """, (robot_id,))
+#     # Iteramos sobre o dicionário robot_archetypes
+#     for archetype_key, data in robot_archetypes.items():
+#         base = data["base_stats"]
         
-        parts = cursor.fetchall()
+#         # Reutiliza suas funções existentes
+#         secondary = calculate_secondary_stats(base)
+#         deck = build_deck(data["deck"], card_list)
 
-        robot_dict = {
-            "id": robot["id"],
-            "name": robot["robot_name"],
-            "archetype": robot["archetype_name"],
-            "stats": {
-                "constitution": robot["base_constitution"],
-                "strength": robot["base_strength"],
-                "agility": robot["base_agility"],
-                "hp": robot["base_hp"]
-            },
-            "parts": [
-                {
-                    "slot": p["slot_name"],
-                    "name": p["part_name"],
-                    "icon": "default.png",
-                    "type": p["type"],
-                    "mods": {
-                        "constitution": p["stat_constitution_mod"],
-                        "strength": p["stat_strength_mod"],
-                        "agility": p["stat_agility_mod"],
-                        "hp": p["stat_hp_mod"]
-                    }
-                }
-                for p in parts
-            ]
-        }
+#         # Monta o objeto formatado para cada um
+#         preview = {
+#             "key": archetype_key,
+#             "label": data["label"],
+#             "image": data["image"],
+#             "base_stats": base,
+#             "secondary_stats": secondary,
+#             "deck": deck
+#         }
+#         all_previews.append(preview)
 
-        robots_list.append(robot_dict)
-
-    conn.close()
-    return jsonify({"robots": robots_list})
-
-# Envio dos arquétipos e dos dados base
-@api.route("/archetypes", methods=["GET"])
-def get_archetypes():
-    return jsonify(robot_archetypes)
-
-# Rota para verificar cada arquétipo
-@api.route("/archetypes/<string:archetype_key>/preview")
-def archetype_preview(archetype_key):
-    archetype = robot_archetypes.get(archetype_key)
-
-    if not archetype:
-        return jsonify({"error": "Arquétipo não encontrado"}), 404
-
-    base = archetype["base_stats"]
-    secondary = calculate_secondary_stats(base)
-
-    deck = build_deck(archetype["deck"], card_list)
-
-    return jsonify({
-        "key": archetype_key,
-        "label": archetype["label"],
-        "image": archetype["image"],
-        "base_stats": base,
-        "secondary_stats": secondary,
-        "deck":deck
-    })
-
-# Rota para criar um "preview" de todos os robôs para o frontend acessar e pegar os atributos.
-@api.route("/archetypes/all/preview")
-def all_archetypes_preview():
-    all_previews = []
-
-    # Iteramos sobre o dicionário robot_archetypes
-    for archetype_key, data in robot_archetypes.items():
-        base = data["base_stats"]
-        
-        # Reutiliza suas funções existentes
-        secondary = calculate_secondary_stats(base)
-        deck = build_deck(data["deck"], card_list)
-
-        # Monta o objeto formatado para cada um
-        preview = {
-            "key": archetype_key,
-            "label": data["label"],
-            "image": data["image"],
-            "base_stats": base,
-            "secondary_stats": secondary,
-            "deck": deck
-        }
-        all_previews.append(preview)
-
-    # Retorna a lista completa de objetos
-    return jsonify(all_previews)
-
-# Rota para criar o robô
-@api.route('/robots/create', methods=["POST"])
-def create_robot():
-    data = request.get_json()
-    
-    robot_name = data.get('robot_name')
-    player_id = data.get('player_id')
-    archetype_key = data.get('archetype_key')
-
-    if not all([robot_name, player_id, archetype_key]):
-        return jsonify({"message": "Dados incompletos"}), 400
-    
-    insert_robot_in_db(robot_name, player_id, archetype_key)
-    
-    return jsonify({"message": "Robô criado com sucesso!"}), 201
+#     # Retorna a lista completa de objetos
+#     return jsonify(all_previews)

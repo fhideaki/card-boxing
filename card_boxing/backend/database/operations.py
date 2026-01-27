@@ -139,3 +139,98 @@ def get_type_names(table_name, type_id, col_to_return, col_to_filter):
 
     cursor.execute(query, (type_id,))
     return [row[0] for row in cursor.fetchall()]
+
+# Retorna todas as cartas no banco de dados
+def get_cards_from_db():
+    
+    conn = sqlite3.connect('card_game.db')
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    query = """
+    SELECT
+        c.*,
+        t.type_name AS type_name,
+        e.effect_name AS effect_name,
+        GROUP_CONCAT(p.part_name, ', ') AS requisitos_pecas
+    FROM cards c
+    JOIN element_types t ON c.type = t.id
+    LEFT JOIN effects e ON c.effect_id = e.id
+    LEFT JOIN robot_parts p ON c.id = p.card_id
+    GROUP BY c.id
+    """
+
+    cursor.execute(query)
+
+    all_parts = cursor.fetchall()
+
+    return all_parts
+
+# Retorna o robô e também todos os seus dados
+def get_robot_with_stats(player_id):
+    
+    conn = sqlite3.connect('card_game.db')
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    query = """
+    SELECT
+        r.id,
+        r.robot_name,
+        ra.archetype_name,
+        (ra.base_constitution + SUM(COALESCE(p.stat_constitution_mod, 0))) AS total_con,
+        (ra.base_strength + SUM(COALESCE(p.stat_strength_mod, 0))) AS total_str,
+        (ra.base_agility + SUM(COALESCE(p.stat_agility_mod, 0))) AS total_agi,
+        (ra.base_hp + SUM(COALESCE(p.stat_hp_mod, 0))) AS total_hp
+    FROM robots r
+    JOIN robot_archetypes ra ON r.archetype_id = ra.id
+    LEFT JOIN robot_equipped_parts rep ON r.id = rep.robot_id
+    LEFT JOIN robot_parts p ON rep.part_id = p.id
+    WHERE r.player_id = ?
+    GROUP BY r.id
+    """
+
+    cursor.execute(query, (player_id,))
+    return cursor.fetchall()
+
+# Método para criar um robô no banco de dados
+def create_robot_in_db(robot_name, archetype_id, player_id):
+    
+    conn = sqlite3.connect('card_game.db')
+    cursor = conn.cursor()    
+    
+    try:
+        query = """
+        INSERT INTO robots (robot_name, player_id, archetype_id)
+        VALUES (?, ?, ?)
+        """
+        cursor.execute(query, (robot_name, player_id, archetype_id))
+
+        novo_id = cursor.lastrowid   
+
+        conn.commit()
+        return novo_id
+        # Retornando o ID do robô criado
+    except Exception as e:
+        print(f"Erro ao inserir no banco: {e}")
+        raise e
+    finally:
+        conn.close()
+
+# Método para pegar os arquétipos do banco de dados
+def get_archetypes_from_db():
+
+    conn = sqlite3.connect('card_game.db')
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    query = """
+    SELECT id, archetype_name FROM robot_archetypes
+    """
+
+    cursor.execute(query)
+    archetypes = cursor.fetchall()
+
+    conn.close()
+
+    return archetypes

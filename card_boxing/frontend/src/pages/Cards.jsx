@@ -1,8 +1,11 @@
-import React, { useState, useSyncExternalStore } from "react";
+import React, { useEffect, useState, useSyncExternalStore } from "react";
 
 export default function Cards() {
     // Estado para armazenar o que o usuário digita
     const [buscaCarta, setBuscaCarta] = useState("");
+
+    // Estado para armazenar a ordenação da tabela
+    const [ordenacao, setOrdenacao] = useState({ coluna: null, direcao: null });
 
     // Estados para os filtros
     const [classeSelecionada, setClasseSelecionada] = useState("");
@@ -10,43 +13,66 @@ export default function Cards() {
     const [pecaSelecionada, setPecaSelecionada] = useState("");
 
     // Dados simulados das cartas
-    const listaCartas = [
-        {
-            id: 1,
-            nome: "Impacto de Sucata",
-            classe: "Tanque",
-            tipo: "Ataque",
-            descricao: "Um golpe pesado usando restos metálicos.",
-            efeito: "Causa 50 de dano físico.",
-            requisitoPecas: ["Braço de Ferro", "Mola Hidráulica"]
-        },
-        {
-            id: 2,
-            nome: "Escudo de Plasma",
-            classe: "Suporte",
-            tipo: "Defesa",
-            descricao: "Cria uma barreira de energia.",
-            efeito: "Bloqueia 30 de dano no próximo turno.",
-            requisitoPecas: [] // Vazio - sem requisito
-        }
-    ];
+    const [listaCartas, setListaCartas] = useState([]);
+
+    useEffect(() =>{
+        const carregarCartas = async () => {
+            try {
+                const resposta = await fetch('http://127.0.0.1:5000/api/cards');
+                const dados = await resposta.json();
+                setListaCartas(dados);
+            } catch (erro) {
+                console.error("Erro ao buscar cartas:", erro);
+            }
+        };
+
+        carregarCartas();
+    }, []);
     
     // Criando as opções dos dropdowns de forma dinâmica
     // Usando o objeto Set para garantir que não ocorram repetições
-    const opcoesClasse = [...new Set(listaCartas.map(c => c.classe))];
-    const opcoesTipos = [...new Set(listaCartas.map(c => c.tipo))];
+    const opcoesClasse = [...new Set(listaCartas.map(c => c.class))];
+    const opcoesTipos = [...new Set(listaCartas.map(c => c.tipo_nome))];
     // Para as peças, pode existir uma lista, então ela precisa ser achatada antes.
-    const opcoesPecas = [...new Set(listaCartas.flatMap(c => c.requisitoPecas))]; 
+    const opcoesPecas = [...new Set(listaCartas.flatMap(c => c.requisitos_pecas))]; 
 
     // Lógica para a filtragem combinada
     const cartasFiltradas = listaCartas.filter((carta) => {
         const bateNome = carta.nome.toLowerCase().includes(buscaCarta.toLowerCase());
-        const bateClasse = classeSelecionada === "" || carta.classe === classeSelecionada;
-        const bateTipo = tipoSelecionado === "" || carta.tipo === tipoSelecionado;
-        const batePeca = pecaSelecionada === "" || carta.requisitoPecas.includes(pecaSelecionada);
+        const bateClasse = classeSelecionada === "" || carta.class === classeSelecionada;
+        const bateTipo = tipoSelecionado === "" || carta.tipo_nome === tipoSelecionado;
+        const batePeca = pecaSelecionada === "" || carta.requisitos_pecas.includes(pecaSelecionada);
 
         return bateNome && bateClasse && bateTipo && batePeca;
     });
+
+    // Lógica para ordernar a filtragem
+    const cartasFiltradasEOrdenadas = [...cartasFiltradas].sort((a, b) => {
+        if (!ordenacao.coluna || !ordenacao.direcao) return 0;
+
+        const valorA = a[ordenacao.coluna];
+        const valorB = b[ordenacao.coluna];
+
+        if (valorA < valorB) return ordenacao.direcao === 'asc' ? -1 : 1;
+        if (valorA > valorB) return ordenacao.direcao === 'asc' ? 1 : -1;
+        return 0;
+    });
+
+    // Criando o componente de cabeçalho para ordenação
+    const handleSort = (coluna) => {
+        setOrdenacao(prev => {
+            if (prev.coluna !== coluna) return { coluna, direcao: 'asc' };
+            if (prev.direcao === 'asc') return { coluna, direcao: 'desc' };
+            return { coluna: null, direcao: null }
+        });
+    };
+
+    // Ícone visual
+    const renderSeta = (coluna) => {
+        if (ordenacao.coluna !== coluna) return " ↕";
+        if (ordenacao.direcao === 'asc') return " ▲";
+        if (ordenacao.direcao === 'desc') return " ▼";    
+    };
 
     return (
         <div>
@@ -94,28 +120,28 @@ export default function Cards() {
             <table border="1">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Nome</th>
-                        <th>Classe</th>
-                        <th>Tipo</th>
+                        <th onClick={() => handleSort('id')} style={{cursor: 'pointer'}}>ID {renderSeta('id')}</th>
+                        <th onClick={() => handleSort('nome')} style={{cursor: 'pointer'}}>Nome {renderSeta('nome')}</th>
+                        <th onClick={() => handleSort('class')} style={{cursor: 'pointer'}}>Classe {renderSeta('class')}</th>
+                        <th onClick={() => handleSort('tipo_nome')} style={{cursor: 'pointer'}}>Tipo {renderSeta('tipo_nome')}</th>
                         <th>Descrição</th>
-                        <th>Efeito</th>
-                        <th>Peças Necessárias</th>
+                        <th onClick={() => handleSort('efeito_nome')} style={{cursor: 'pointer'}}>Efeito {renderSeta('efeito_nome')}</th>
+                        <th onClick={() => handleSort('requisitos_pecas')} style={{cursor: 'pointer'}}>Peças Necessárias {renderSeta('requisitos_pecas')}</th>
                     </tr>
                 </thead>
                 <tbody>
                     {/* Usando a lista filtrada para o map */}
-                    {cartasFiltradas.map((carta) => (
+                    {cartasFiltradasEOrdenadas.map((carta) => (
                         <tr key={carta.id}>
                             <td>{carta.id}</td>
                             <td>{carta.nome}</td>
-                            <td>{carta.classe}</td>
-                            <td>{carta.tipo}</td>
+                            <td>{carta.class}</td>
+                            <td>{carta.tipo_nome}</td>
                             <td>{carta.descricao}</td>
-                            <td>{carta.efeito}</td>
+                            <td>{carta.efeito_nome}</td>
                             <td>
-                                {carta.requisitoPecas.length > 0
-                                    ? carta.requisitoPecas.join(", ")
+                                {(carta.requisitos_pecas || []).length > 0
+                                    ? carta.requisitos_pecas.join(", ")
                                 : "Vazio"}
                             </td>
                         </tr>

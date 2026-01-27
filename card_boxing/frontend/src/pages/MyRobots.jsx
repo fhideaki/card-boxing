@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 export default function MyRobots() {
     // Estado para armazenar o que o usuário digita
@@ -13,6 +13,39 @@ export default function MyRobots() {
     const [modalAberto, setModalAberto] = useState(false);
     const [novoNome, setNovoNome] = useState("");
     const [novoArquetipo, setNovoArquetipo] = useState("");
+
+    // Estado para salvar o robô criado
+    const handleCriarRobo = () => {
+        // Validação Básica
+        if (!novoNome || !novoArquetipo) {
+            alert("Preencha todos os campos!");
+            return;
+        }
+
+        // Montagem do objeto para o backend
+        const payload = {
+            robot_name: novoNome,
+            archetype_id: parseInt(novoArquetipo)
+        };
+
+        // Chamada para a API
+        fetch('http://127.0.0.1:5000/api/robots', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => {
+            if (res.ok) {
+                alert("Robô criado com sucesso!");
+                setModalAberto(false); // Fecha o modal
+                setNovoNome(""); // Limpa os campos
+                setNovoArquetipo(""); 
+            } else {
+                alert("Erro ao criar robô.");
+            }
+        })
+        .catch(err => console.error("Erro ao salvar:", err));
+    }
 
     // Estados para as ações dos robôs
     const [modalEdicaoAberto, setModalEdicaoAberto] = useState(false);
@@ -50,8 +83,44 @@ export default function MyRobots() {
     }
     ]
 
-    // Dados simulados dos arquétipos
-    const arquetiposDisponiveis = ["Tanque", "Atirador", "Suporte", "Assassino"];
+    // Dados dos robôs
+    const [meusRobos, setMeusRobos] = useState([]);
+
+    const carregarRobos = () => {
+        fetch('http://127.0.0.1:5000/api/robots?user_id=1')
+            .then(res => res.json())
+            .then(data => {
+                // Mapeando o nome das chaves do banco
+                const robosFormatados = data.map(r => ({
+                    id: r.id,
+                    nome: r.name,
+                    arquetipo: r.archetype,
+
+                    constituicao: r.stats.constitution,
+                    forca: r.stats.strength,
+                    agilidade: r.stats.agility,
+                    hp: r.stats.hp,
+
+                    pecas: r.parts || [],
+                    fraquezas: [],
+                    resistencias: []
+                }));
+
+                setMeusRobos(robosFormatados);
+            })
+            .catch(err => console.error("Erro ao carregar robôs:", err));
+    };
+
+    // Dados dos arquétipos
+    const [arquetipos, setArquetipos] = useState([]);
+
+    useEffect(() => {
+        // Buscando os arquétipos para dropdown no modal
+        fetch('http://127.0.0.1:5000/api/archetypes')
+            .then(res => res.json())
+            .then(data => setArquetipos(data))
+            .catch(err => console.error("Erro ao buscar arquétipos:", err));
+    }, []);
 
     // Dados simulados dos slots
     const slotsConfig = [
@@ -331,19 +400,24 @@ export default function MyRobots() {
 
                         <div>
                             <label>Arquétipo: </label>
-                            <select value={novoArquetipo} onChange={(e) => setNovoArquetipo(e.target.value)}>
+                            <select 
+                                value={novoArquetipo} onChange={(e) => setNovoArquetipo(e.target.value)}>
                                 <option value="">Selecione o arquétipo</option>
-                                {arquetiposDisponiveis.map(arq => (
-                                    <option key={arq} value={arq}>{arq}</option>
+                                {arquetipos.map(arq => (
+                                    <option key={arq.id} value={arq.id}>{arq.archetype_name}</option>
                                 ))}
                             </select>
                         </div>
                         
                         {/* Botão para salvar o robô novo, preciso adicionar a lógica para inserir no banco de dados */}
-                        <button onClick={() => setModalAberto(false)}>
+                        <button onClick={handleCriarRobo}>
                             Criar Robô
                         </button>
-                        <button onClick={() => setModalAberto(false)}>Cancelar</button>
+                        <button onClick={() => {
+                            setModalAberto(false);
+                            setNovoNome("");
+                            setNovoArquetipo("");
+                            }}>Cancelar</button>
                     </div>
                 </div>
             )}

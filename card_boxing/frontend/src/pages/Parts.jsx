@@ -4,6 +4,9 @@ export default function Parts() {
     // Estado para armazenar o que o usuário digita
     const [buscaPeca, setBuscaPeca] = useState("");
 
+    // Estado para armazenar a ordenação da tabela
+    const [ordenacao, setOrdenacao] = useState({ coluna: null, direcao: null });
+
     // Estados para os filtros
     const [slotSelecionado, setSlotSelecionado] = useState("");
     const [tipoSelecionado, setTipoSelecionado] = useState("");
@@ -61,6 +64,34 @@ export default function Parts() {
         console.log(`Peça: ${peca.nome} | Bate Slot: ${bateSlot} | Bate Tipo: ${bateTipo}`);
         return bateNome && bateSlot && bateTipo && bateFraqueza && bateResistencia && bateCarta && bateConMod && bateStrMod && bateAgiMod && bateHpMod;
     });
+
+    // Lógica para ordenar a filtragem
+    const pecasFiltradasEOrdenadas = [...pecasFiltradas].sort((a, b) => {
+        if (!ordenacao.coluna || !ordenacao.direcao) return 0;
+
+        const valorA = a[ordenacao.coluna];
+        const valorB = b[ordenacao.coluna];
+
+        if (valorA < valorB) return ordenacao.direcao === 'asc' ? -1 : 1;
+        if (valorA > valorB) return ordenacao.direcao === 'asc' ? 1: -1;
+        return 0;
+    });
+
+    // Criando o componente de cabeçalho para ordenação
+    const handleSort = (coluna) => {
+        setOrdenacao(prev => {
+            if (prev.coluna !== coluna) return { coluna, direcao: 'asc' };
+            if (prev.direcao === 'asc') return { coluna, direcao: 'desc' };
+            return { coluna: null, direcao: null } // Isso é para zerar o filtro
+        });
+    };
+
+    // Ícone visual
+    const renderSeta = (coluna) => {
+        if (ordenacao.coluna !== coluna) return " ↕";
+        if (ordenacao.direcao === 'asc') return " ▲";
+        if (ordenacao.direcao === 'desc') return " ▼";    
+    };
 
     return (
         <div>
@@ -162,22 +193,22 @@ export default function Parts() {
             <table border="1">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Nome</th>
-                        <th>Slot</th>
-                        <th>Tipo</th>
-                        <th>Fraquezas</th>
-                        <th>Resistências</th>
-                        <th>Constituição</th>
-                        <th>Força</th>
-                        <th>Agilidade</th>
-                        <th>HP</th>
-                        <th>Cartas</th>
+                        <th onClick={() => handleSort('id')} style={{cursor: 'pointer'}}>ID {renderSeta('id')}</th>
+                        <th onClick={() => handleSort('nome')} style={{cursor: 'pointer'}}>Nome {renderSeta('nome')}</th>
+                        <th onClick={() => handleSort('slot')} style={{cursor: 'pointer'}}>Slot {renderSeta('slot')}</th>
+                        <th onClick={() => handleSort('tipo_nome')} style={{cursor: 'pointer'}}>Tipo {renderSeta('tipo_nome')}</th>
+                        <th onClick={() => handleSort('fraquezas')} style={{cursor: 'pointer'}}>Fraquezas {renderSeta('fraquezas')}</th>
+                        <th onClick={() => handleSort('resistencias')} style={{cursor: 'pointer'}}>Resistências {renderSeta('resistencias')}</th>
+                        <th onClick={() => handleSort('conmod')} style={{cursor: 'pointer'}}>Constituição {renderSeta('conmod')}</th>
+                        <th onClick={() => handleSort('strmod')} style={{cursor: 'pointer'}}>Força {renderSeta('strmod')}</th>
+                        <th onClick={() => handleSort('agimod')} style={{cursor: 'pointer'}}>Agilidade {renderSeta('agimod')}</th>
+                        <th onClick={() => handleSort('hpmod')} style={{cursor: 'pointer'}}>HP {renderSeta('hpmod')}</th>
+                        <th onClick={() => handleSort('carta')} style={{cursor: 'pointer'}}>Cartas {renderSeta('carta')}</th>
                     </tr>
                 </thead>
                 <tbody>
                     {/* Usando a lista filtrada para o map */}
-                    {pecasFiltradas.map((peca) => (
+                    {pecasFiltradasEOrdenadas.map((peca) => (
                         <tr key={peca.id}>
                             <td>{peca.id}</td>
                             <td>{peca.nome}</td>
