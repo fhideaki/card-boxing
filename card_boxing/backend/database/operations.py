@@ -66,30 +66,6 @@ def check_password(username, password_attempt):
         cursor.close()
         conn.close()
 
-def insert_robot_in_db(robot_name, player_id, archetype_key):
-
-    conn = sqlite3.connect('card_game.db')
-    cursor = conn.cursor()
-
-    try: 
-        cursor.execute("""
-            INSERT INTO robots (robot_name, player_id, archetype_id)
-            VALUES (?, ?, (SELECT id FROM robot_archetypes WHERE archetype_name = ?))
-    """, (robot_name, player_id, archetype_key))
-        
-        robot_id = cursor.lastrowid
-        conn.commit()
-        return robot_id
-    
-    except Exception as e:
-        # Em caso de qualquer erro de DB, falha o login por segurança
-        print(f"Erro ao verificar senha: {str(e)}")
-        return False
-            
-    finally:
-        cursor.close()
-        conn.close()
-
 # Retorna todas as peças no banco de dados
 def get_parts_from_db():
     
@@ -234,3 +210,68 @@ def get_archetypes_from_db():
     conn.close()
 
     return archetypes
+
+# Pegar os detalhes de um robô pelo id
+def get_equipped_parts_detailed(robot_id):
+    conn = sqlite3.connect('card_game.db')
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    # Query para buscar os detalhes das partes equipadas ao robô em questão
+    query = """
+    SELECT p.*, s.slot_name, t.type_name
+    FROM robot_parts p
+    JOIN robot_equipped_parts rep ON p.id = rep.part_id
+    JOIN robot_slots s ON p.slot_id = s.id
+    JOIN element_types t ON p.type = t.id
+    WHERE rep.robot_id = ?
+    """
+
+    cursor.execute(query, (robot_id,))
+    return cursor.fetchall()
+
+# Pega todos os robôs do usuário
+def get_full_robots_data(player_id):
+    # Busca os robôs e stats
+    rows = get_robot_with_stats(player_id)
+
+    full_robots = []
+
+    for robot in rows:
+        # Busca as peças detalhadas deste robô em específico
+        equipped_parts = get_equipped_parts_detailed(robot['id'])
+
+        total_weaknesses = []
+        total_resistances = []
+        parts_list = []
+
+        for part in equipped_parts:
+            fw = get_type_names('type_weaknesses', part['type_id'], 'weak_to_id', 'type_id')
+            tr = get_type_names('type_resistances', part['type_id'], 'resists_id', 'type_id')
+
+            total_weaknesses.extend(fw)
+            total_resistances.extend(tr)
+
+            parts_list.append({
+                'id': part['id'],
+                'nome': part['part_name'],
+                'slot': part['slot_name']
+            })
+
+        # Montando o dicionário para o font
+        full_robots.append({
+            'id': robot['id'],
+            'name': robot['robot_name'],
+            'archetype': robot['archetype_name'],
+            'stats': {
+                'constitution': robot['total_con'],
+                'strength': robot['total_str'],
+                'agility': robot['total_agi'],
+                'hp': robot['total_hp']
+            },
+            'fraquezas': total_weaknesses,
+            'resistencias': total_resistances,
+            'parts': parts_list
+        })
+    
+    return full_robots

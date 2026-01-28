@@ -1,6 +1,6 @@
 # Imports
-from flask import request, jsonify, Blueprint, redirect, render_template, url_for, flash, send_file
-from database import get_parts_from_db, get_details, get_type_names, get_robot_with_stats, get_cards_from_db, create_robot_in_db, get_archetypes_from_db
+from flask import request, jsonify, Blueprint
+from database import get_parts_from_db, get_details, get_type_names, get_robot_with_stats, get_cards_from_db, create_robot_in_db, get_archetypes_from_db, get_full_robots_data
 import sqlite3
 
 # Construtor do flask/ Flask constructor
@@ -8,20 +8,22 @@ robots_bp = Blueprint('robots', __name__)
 
 # Rota para receber todas as partes do banco de dados
 @robots_bp.route('/robots', methods=['GET'])
-def get_robots_with_details():
+def get_robots():
     
-    # Simulando um usuário logado
-    current_player_id = 1
+    # Pega o ID do usuário que vem na URL
+    user_id = request.args.get('user_id')
 
-    robots_data = get_robot_with_stats(current_player_id)
+    if not user_id:
+        return jsonify({'error': 'User ID é obrigatório'}), 400
+    
+    try:
+        robots_data = get_full_robots_data(user_id)
 
-    # Criando uma lista vazia que vai armazenar os robôs
-    all_robots_list = []
-
-    for robot in robots_data:
-        all_robots_list.append(dict(robot))
-        
-    return jsonify(all_robots_list)
+        return jsonify({'robots': robots_data})
+    
+    except Exception as e:
+        print(f"Erro ao buscar robôs: {e}")
+        return jsonify({'error': 'Erro interno no servidor'}), 500
 
 @robots_bp.route('/archetypes', methods=['GET'])
 def get_archetypes():
