@@ -16,8 +16,8 @@ def get_parts():
 
     for part in all_parts:
 
-        fraquezas = get_type_names('type_weaknesses', part['type'], 'type_id', 'weak_to_id')
-        resistencias = get_type_names('type_resistances', part['type'], 'type_id', 'resists_id')
+        fraquezas = get_type_names('type_weaknesses', part['type'], 'weak_to_id', 'type_id')
+        resistencias = get_type_names('type_resistances', part['type'], 'resists_id', 'type_id')
 
         part_dict = {
             'id': part["id"],

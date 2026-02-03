@@ -211,6 +211,24 @@ def get_archetypes_from_db():
 
     return archetypes
 
+# Método para pegar os slots do banco de dados
+def get_slots_from_db():
+
+    conn = sqlite3.connect('card_game.db')
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    query = """
+    SELECT * FROM robot_slots
+    """
+
+    cursor.execute(query)
+    slots = cursor.fetchall()
+
+    conn.close()
+
+    return slots
+
 # Pegar os detalhes de um robô pelo id
 def get_equipped_parts_detailed(robot_id):
     conn = sqlite3.connect('card_game.db')
@@ -219,11 +237,16 @@ def get_equipped_parts_detailed(robot_id):
 
     # Query para buscar os detalhes das partes equipadas ao robô em questão
     query = """
-    SELECT p.*, s.slot_name, t.type_name
+    SELECT 
+        p.*, 
+        s.slot_name AS slot_name, 
+        t.type_name AS type_name,
+        c.name AS card_name
     FROM robot_parts p
     JOIN robot_equipped_parts rep ON p.id = rep.part_id
     JOIN robot_slots s ON p.slot_id = s.id
     JOIN element_types t ON p.type = t.id
+    LEFT JOIN cards c ON p.card_id = c.id
     WHERE rep.robot_id = ?
     """
 
@@ -246,8 +269,8 @@ def get_full_robots_data(player_id):
         parts_list = []
 
         for part in equipped_parts:
-            fw = get_type_names('type_weaknesses', part['type_id'], 'weak_to_id', 'type_id')
-            tr = get_type_names('type_resistances', part['type_id'], 'resists_id', 'type_id')
+            fw = get_type_names('type_weaknesses', part['type'], 'weak_to_id', 'type_id')
+            tr = get_type_names('type_resistances', part['type'], 'resists_id', 'type_id')
 
             total_weaknesses.extend(fw)
             total_resistances.extend(tr)
@@ -275,3 +298,42 @@ def get_full_robots_data(player_id):
         })
     
     return full_robots
+
+# Método para renomear o robô
+def rename_robot_on_db(new_name, robot_id):
+    try:
+        conn = sqlite3.connect('card_game.db')
+        cursor = conn.cursor()
+
+        cursor.execute("UPDATE robots SET robot_name = ? WHERE id = ?", (new_name, robot_id))
+        conn.commit()
+        conn.close()
+        return True
+    except Exception as e:
+        print(f"Erro ao renomear no banco: {e}")
+        return False
+    
+# Método para atualizar as peças do robô
+def update_robot_parts_on_db(robot_id, parts_data):
+    try:
+        conn = sqlite3.connect('card_game.db')
+        cursor = conn.cursor()
+
+        # Removendo as peças do robô para evitar duplicatas
+        cursor.execute("DELETE FROM robot_equipped_parts WHERE robot_id = ?", (robot_id,))
+
+        # Inserindo as novas peças
+        for item in parts_data:
+            if item['part_id']:
+                cursor.execute("""
+                    INSERT INTO robot_equipped_parts (robot_id, slot_id, part_id)
+                    VALUES (?, ?, ?)
+            """, (robot_id, item['slot_id'], item['part_id']))
+                
+        conn.commit()
+        conn.close()
+        return True
+    
+    except Exception as e:
+        print(f"Erro ao equipar peças no banco: {e}")
+        return False

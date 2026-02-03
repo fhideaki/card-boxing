@@ -306,12 +306,15 @@ def init_db():
     """, parts)
 
     weaknesses = [
-        ('Water', 'Iron'),
-        ('Fire', 'Rubber'),
-        ('Water', 'Fire'),
-        ('Iron', 'Neutral'),
-        ('Rubber', 'Neutral')
-    ]
+            ('Neutral', 'Iron'),
+            ('Fire', 'Water'),
+            ('Fire', 'Sand'),
+            # Water não tem fraquezas
+            ('Iron', 'Fire'),
+            ('Rubber', 'Fire'),
+            ('Sand', 'Iron'),
+            ('Sand', 'Water')
+        ]
 
     cursor.executemany("""
         INSERT OR IGNORE INTO type_weaknesses (
@@ -324,10 +327,15 @@ def init_db():
     """, weaknesses)
 
     resistances = [
-        ('Rubber', 'Iron'),
-        ('Iron', 'Fire'),
-        ('Rubber', 'Fire'),
-        ('Fire', 'Water')
+        ('Neutral', 'Rubber'),
+        ('Fire', 'Rubber'),
+        ('Water', 'Fire'),
+        ('Water', 'Iron'),
+        ('Iron', 'Rubber'),
+        ('Iron', 'Neutral'),
+        ('Iron', 'Sand'),
+        ('Rubber', 'Neutral'),
+        ('Sand', 'Fire')
     ]
 
     cursor.executemany("""

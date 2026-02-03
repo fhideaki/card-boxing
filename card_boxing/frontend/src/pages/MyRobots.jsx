@@ -37,6 +37,7 @@ export default function MyRobots() {
         .then(res => {
             if (res.ok) {
                 alert("Robô criado com sucesso!");
+                carregarRobos();
                 setModalAberto(false); // Fecha o modal
                 setNovoNome(""); // Limpa os campos
                 setNovoArquetipo(""); 
@@ -56,32 +57,6 @@ export default function MyRobots() {
 
     // Estados para as abas do modal (estilo Pokémon Showdown)
     const [abaAtual, setAbaAtual] = useState("menu");
-    
-    // Dados simulados dos robôs
-    const listaRobos = [
-        {
-        id: 1,
-        nome: "Sentinela de Ferro",
-        arquetipo: "Tanque",
-        fraquezas: ["Elétrico", "Água"],
-        resistencias: ["Físico", "Físico", "Fogo"], // Exemplo de resistência duplicada
-        constituicao: 10,
-        forca: 8,
-        agilidade: 2,
-        hp: 200
-    },
-    {
-        id: 2,
-        nome: "Lâmina Veloz",
-        arquetipo: "Atirador",
-        fraquezas: ["Fogo"],
-        resistencias: ["Vento", "Vento", "Vento"], // Resistência tripla
-        constituicao: 4,
-        forca: 5,
-        agilidade: 12,
-        hp: 120
-    }
-    ]
 
     // Dados dos robôs
     const [meusRobos, setMeusRobos] = useState([]);
@@ -90,8 +65,10 @@ export default function MyRobots() {
         fetch('http://127.0.0.1:5000/api/robots?user_id=1')
             .then(res => res.json())
             .then(data => {
+                const robosServidor = data.robots || [];
+
                 // Mapeando o nome das chaves do banco
-                const robosFormatados = data.map(r => ({
+                const robosFormatados = robosServidor.map(r => ({
                     id: r.id,
                     nome: r.name,
                     arquetipo: r.archetype,
@@ -102,8 +79,8 @@ export default function MyRobots() {
                     hp: r.stats.hp,
 
                     pecas: r.parts || [],
-                    fraquezas: [],
-                    resistencias: []
+                    fraquezas: r.fraquezas || [],
+                    resistencias: r.resistencias || []
                 }));
 
                 setMeusRobos(robosFormatados);
@@ -122,109 +99,85 @@ export default function MyRobots() {
             .catch(err => console.error("Erro ao buscar arquétipos:", err));
     }, []);
 
-    // Dados simulados dos slots
-    const slotsConfig = [
-    { id: "Cabeça", label: "Cabeça" },
-    { id: "Peito", label: "Corpo" },
-    { id: "Braço", label: "Braço Direito" },
-    { id: "Braço", label: "Braço Esquerdo" },
-    { id: "Pernas", label: "Perna Direita" },
-    { id: "Pernas", label: "Perna Esquerda" },
-    { id: "Costas", label: "Costas" }
-    ];
+    useEffect(() => {
+        carregarRobos();
+        carregarSlots();
+        carregarPecas();
+    }, []); 
 
-    // Dados simulados das peças
-    const listaPecas = [
-    {
-        id: 1,
-        nome: "Núcleo de Energia Simples",
-        slot: "Peito",
-        tipo: "Eletrônico",
-        conmod: 5,
-        strmod: 0,
-        agimod: 0,
-        hpmod: 50,
-        fraquezas: ["Água"],
-        resistencias: ["Físico"],
-        liberaCartas: [
-            { carta: "Recarregar", precisaDe: null }
-        ]
-    },
-    {
-        id: 2,
-        nome: "Processador de Combate",
-        slot: "Cabeça",
-        tipo: "Eletrônico",
-        conmod: 0,
-        strmod: 2,
-        agimod: 3,
-        hpmod: 10,
-        fraquezas: ["Elétrico"],
-        resistencias: [],
-        liberaCartas: [
-            { carta: "Análise de Dados", precisaDe: null }
-        ]
-    },
-    {
-        id: 3,
-        nome: "Tanque de Combustível",
-        slot: "Costas",
-        tipo: "Suporte",
-        conmod: 3,
-        strmod: 0,
-        agimod: -1,
-        hpmod: 20,
-        fraquezas: ["Fogo"],
-        resistencias: ["Explosão"],
-        liberaCartas: [
-            { carta: "Explosão de Nafta", precisaDe: "Lançador de Chamas" }
-        ]
-    },
-    {
-        id: 4,
-        nome: "Lançador de Chamas",
-        slot: "Braço",
-        tipo: "Fogo",
-        conmod: 0,
-        strmod: 4,
-        agimod: 0,
-        hpmod: 15,
-        fraquezas: ["Água"],
-        resistencias: ["Fogo"],
-        liberaCartas: [
-            { carta: "Incinerar", precisaDe: null },
-            { carta: "Explosão de Nafta", precisaDe: "Tanque de Combustível" }
-        ]
-    },
-    {
-        id: 5,
-        nome: "Propulsor Hidráulico",
-        slot: "Pernas",
-        tipo: "Mecânico",
-        conmod: 2,
-        strmod: 0,
-        agimod: 5,
-        hpmod: 30,
-        fraquezas: ["Gelo"],
-        resistencias: ["Físico"],
-        liberaCartas: [
-            { carta: "Investida", precisaDe: null }
-        ]
-    },
-    {
-        id: 6,
-        nome: "Placa de Titânio",
-        slot: "Peito",
-        tipo: "Defesa",
-        conmod: 8,
-        strmod: -1,
-        agimod: -2,
-        hpmod: 100,
-        fraquezas: [],
-        resistencias: ["Físico", "Físico"], // Exemplo de resistência dupla
-        liberaCartas: []
-    }
-    ];
+    // Dados dos slots
+    const [slotsConfig, setSlotsConfig] = useState([]);
+
+    const carregarSlots = () => {
+        fetch('http://127.0.0.1:5000/api/slots')
+            .then(res => res.json())
+            .then(data => {
+                // Mapeando o que vem do banco
+                const slotsFormatados = data.map(s => ({
+                    id: s.id,
+                    tecnico: s.slot_name,
+                    label: s.slot_name
+                }));
+
+                setSlotsConfig(slotsFormatados);
+            })
+            .catch(err => console.error("Erro ao carregar slots>", err));
+    };
+    // Dados das peças
+    const [listaPecas, setListaPecas] = useState([]);
+
+    const carregarPecas = () => {
+        fetch('http://127.0.0.1:5000/api/parts')
+            .then(res => res.json())
+            .then(data => {
+                setListaPecas(data);
+            })
+            .catch(err => console.error("Erro ao carregar peças:", err));
+    };
+
+    // Estado para renomar o robô
+    const handleRenomear = () => {
+        fetch(`http://127.0.0.1:5000/api/${roboSendoEditado.id}/rename`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: roboSendoEditado.nome })
+        })
+        .then(res => {
+            if (res.ok) {
+                alert("Nome alterado com sucesso!");
+                setModalEdicaoAberto(false);
+                carregarRobos();
+            } else {
+                alert("Erro ao renomear.");
+            }
+        });
+    };
+
+    // Estado para atualizar as peças
+    const handleSalvarPecas = () => {
+        const listaParaEnviar = slotsConfig.map(slot => {
+            const pecaNoEstado = equipamento[slot.tecnico];
+            return {
+                slot_id: slot.id,
+                part_id: pecaNoEstado ? pecaNoEstado.id : null
+            };
+        });
+
+        fetch(`http://127.0.0.1:5000/api/${roboSendoEditado.id}/equip`, {
+            method: 'PATCH', 
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON. stringify({ parts: listaParaEnviar })
+        })
+        .then(res => {
+            if (res.ok) {
+                alert("Peças salvas com sucesso!");
+                carregarRobos();
+            } else {
+                alert("Erro ao salvar peças.");
+            }
+        })
+        .catch(err => console.error("Erro:", err));
+    };
 
     // Dados simulados dos decks
     const [listaDecks, setListaDecks] = useState([
@@ -241,12 +194,12 @@ export default function MyRobots() {
 
     // Criando as opções dos dropdowns de forma dinâmica
     // Usando o objeto Set para garantir que não ocorram repetições
-    const opcoesArquetipos = [...new Set(listaRobos.map(r => r.arquetipo))];
-    const opcoesFraquezas = [...new Set(listaRobos.flatMap(r => r.fraquezas))]; 
-    const opcoesResistencias = [...new Set(listaRobos.flatMap(r => r.resistencias))]; 
+    const opcoesArquetipos = [...new Set(meusRobos.map(r => r.arquetipo))];
+    const opcoesFraquezas = [...new Set(meusRobos.flatMap(r => r.fraquezas))]; 
+    const opcoesResistencias = [...new Set(meusRobos.flatMap(r => r.resistencias))]; 
 
     // Lógica para a filtragem combinada
-    const robosFiltrados = listaRobos.filter((robo) => {
+    const robosFiltrados = meusRobos.filter((robo) => {
         const bateNome = robo.nome.toLowerCase().includes(buscaRobo.toLowerCase());
         const bateArquetipo = arquetipoSelecionado === "" || robo.arquetipo === arquetipoSelecionado;
         const bateFraqueza = tipoFraquezaSelecionado === "" || robo.fraquezas.includes(tipoFraquezaSelecionado);
@@ -435,6 +388,7 @@ export default function MyRobots() {
                                 nome: e.target.value
                             })}
                         />
+                        <button onClick={handleRenomear}>Renomear</button>
                         <button onClick={() => setModalEdicaoAberto(false)}>Fechar</button>
                     </div>
 
@@ -499,13 +453,13 @@ export default function MyRobots() {
                                 <div>
                                     <p>Selecione as peças para os slots abaixo:</p>
                                     <div>
-                                        {slotsConfig.map((slot, index) => {
+                                        {slotsConfig.map((slot) => {
                                             // Criando uma chave única para o estado de cada equipamento
-                                            const chaveSlot = `${slot.id}_${index}`;
+                                            const chaveSlot = slot.tecnico;
                                             const pecaEquipada = equipamento[chaveSlot];
 
                                             return (
-                                                <div>
+                                                <div key={slot.id}>
                                                     <label>{slot.label}:</label>
                                                     <select
                                                         value={pecaEquipada?.id || ""}
@@ -513,25 +467,31 @@ export default function MyRobots() {
                                                             const idSelecionado = parseInt(e.target.value);
                                                             const pecaEncontrada = listaPecas.find(p => p.id === idSelecionado);
 
-                                                            // Atualiza o estado mantendo as outras peças e trocando somente a selecionada
                                                             setEquipamento(prev => ({
                                                                 ...prev,
                                                                 [chaveSlot]: pecaEncontrada || null
                                                             }));
-                                                        }}>
-                                                            <option value="">(Nenhuma)</option>
-                                                            {/* Filtrando a lista global para mostrar apenas peças deste slot */}
-                                                            {listaPecas
-                                                                .filter(p => p.slot === slot.id)
-                                                                .map(p => (
-                                                                    <option key={p.id} value={p.id}>{p.nome}</option>
-                                                                ))
-                                                            }
-                                                        </select>
+                                                        }}
+                                                    >
+                                                        <option value="">(Nenhuma)</option>
+                                                        {listaPecas
+                                                            .filter(p => p.slot === slot.tecnico)
+                                                            .map(p => (
+                                                                <option key={p.id} value={p.id}>{p.nome}</option>
+                                                            ))
+                                                        }
+                                                    </select>
                                                 </div>
                                             )
                                         })}
                                     </div>
+                                </div>
+                                <div>
+                                    <button
+                                        onClick={handleSalvarPecas}
+                                    >
+                                        Salvar Configuração de Peças
+                                    </button>
                                 </div>
                             </div>
                         )}
