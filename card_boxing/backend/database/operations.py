@@ -337,3 +337,18 @@ def update_robot_parts_on_db(robot_id, parts_data):
     except Exception as e:
         print(f"Erro ao equipar peças no banco: {e}")
         return False
+    
+# Método para deletar um robô
+def delete_robot_from_db(robot_id):
+    try:
+        conn = sqlite3.connect('card_game.db')
+        cursor = conn.cursor()
+
+        cursor.execute("DELETE FROM robots WHERE id = ?", (robot_id,))
+
+        conn.commit()
+        conn.close()
+        return True
+    except Exception as e:
+        print(f"Erro ao deletar robô: {e}")
+        return False

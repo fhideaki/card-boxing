@@ -53,13 +53,31 @@ export default function MyRobots() {
     const [roboSendoEditado, setRoboSendoEditado] = useState(null);
 
     // Estado para carregar as peças
-    const [equipamento, setEquipamento] = useState(roboSendoEditado?.slots || {});
+    const [equipamento, setEquipamento] = useState({});
 
     // Estados para as abas do modal (estilo Pokémon Showdown)
     const [abaAtual, setAbaAtual] = useState("menu");
 
     // Dados dos robôs
     const [meusRobos, setMeusRobos] = useState([]);
+
+    // Função para pegar as peças já equipadas nos robôs criados
+    const abrirModalEdicao = (robo) => {
+        setRoboSendoEditado(robo);
+        setAbaAtual("menu");
+
+        // Limpa o estado anterior e preenche com as peças já equipadas
+        const pecasAtuais = {};
+
+        if (robo.pecas && robo.pecas.length > 0) {
+            robo.pecas.forEach(p => {
+                pecasAtuais[p.slot] = { id: p.id, nome: p.nome };
+            });
+        }
+        setEquipamento(pecasAtuais);
+
+        setModalEdicaoAberto(true);
+    };
 
     const carregarRobos = () => {
         fetch('http://127.0.0.1:5000/api/robots?user_id=1')
@@ -229,6 +247,22 @@ export default function MyRobots() {
         return todos; 
     };
 
+    // Função para deletar um robô
+    const handleDeletarRobo = (id) => {
+        fetch(`http://127.0.0.1:5000/api/${id}`, {
+            method: 'DELETE',
+        })
+        .then(res => {
+            if (res.ok) {
+                alert("Robô deletado!");
+                carregarRobos();
+            } else {
+                alert("Erro ao deletar robô.");
+            }
+        })
+        .catch(err => console.error("Erro ao deletar:", err));
+    };
+
     return (
         <div>
             <h1>Meus Robôs</h1>
@@ -314,18 +348,14 @@ export default function MyRobots() {
                             <td>{robo.agilidade}</td>
                             <td>{robo.hp}</td>
                             <td>
-                                <button onClick={() =>{
-                                    setRoboSendoEditado(robo);
-                                    setModalEdicaoAberto(true);
-                                }}>
+                                <button onClick={() => abrirModalEdicao(robo)}>
                                     Editar
                                 </button>
 
                                 <button onClick={() => {
                                     // Lógica simples de deletar, por enquanto é apenas um aviso ou filtro
                                     if(window.confirm(`Deseja deletar o robô ${robo.nome}?`)) {
-                                        // Aqui vai entrar a função para excluir o robô
-                                        console.log("Deletando robô com id: ", robo.id);
+                                        handleDeletarRobo(robo.id);
                                     }
                                 }}>
                                     Deletar
@@ -457,6 +487,8 @@ export default function MyRobots() {
                                             // Criando uma chave única para o estado de cada equipamento
                                             const chaveSlot = slot.tecnico;
                                             const pecaEquipada = equipamento[chaveSlot];
+
+                                            console.log(`Slot: ${chaveSlot} | Peça Encontrada:`, pecaEquipada);
 
                                             return (
                                                 <div key={slot.id}>

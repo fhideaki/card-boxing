@@ -1,1 +1,1 @@
-from database.operations import get_parts_from_db, get_details, get_type_names, get_cards_from_db, get_robot_with_stats, create_robot_in_db, get_archetypes_from_db, get_full_robots_data, get_equipped_parts_detailed, get_slots_from_db, rename_robot_on_db, update_robot_parts_on_db
+from database.operations import get_parts_from_db, get_details, get_type_names, get_cards_from_db, get_robot_with_stats, create_robot_in_db, get_archetypes_from_db, get_full_robots_data, get_equipped_parts_detailed, get_slots_from_db, rename_robot_on_db, update_robot_parts_on_db, delete_robot_from_db

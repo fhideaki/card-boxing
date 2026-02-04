@@ -1,6 +1,6 @@
 # Imports
 from flask import request, jsonify, Blueprint
-from database import create_robot_in_db, get_archetypes_from_db, get_full_robots_data, get_slots_from_db, rename_robot_on_db, update_robot_parts_on_db
+from database import create_robot_in_db, get_archetypes_from_db, get_full_robots_data, get_slots_from_db, rename_robot_on_db, update_robot_parts_on_db, delete_robot_from_db
 import sqlite3
 
 # Construtor do flask/ Flask constructor
@@ -95,3 +95,13 @@ def equip_robot(robot_id):
         return jsonify({"message": "Equipamento atualizado!"}), 200
     else:
         return jsonify({"error": "Falha ao salvar equipamento"}), 500
+    
+# Rota para deletar o robô
+@robots_bp.route('/<int:robot_id>', methods=['DELETE'])
+def delete_robot(robot_id):
+    sucesso = delete_robot_from_db(robot_id)
+
+    if sucesso:
+        return jsonify({"message": "Robô removido com sucesso"}), 200
+    else:
+        return jsonify({"error": "Erro ao deletar robô do banco de dados"}), 500
