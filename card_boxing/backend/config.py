@@ -1,0 +1,4 @@
+# Regras do jogo
+MAX_DECK_SIZE = 15
+MIN_DECK_SIZE = 15
+MAX_DUPLICATE_CARDS = 3

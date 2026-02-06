@@ -352,3 +352,28 @@ def delete_robot_from_db(robot_id):
     except Exception as e:
         print(f"Erro ao deletar robô: {e}")
         return False
+    
+# Método para buscar um deck do bd
+def get_robot_deck_from_db(robot_id):
+    try:
+        conn = sqlite3.connect('card_game.db')
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+
+        # Buscando as cartas e suas quantidades no deck do robô
+        query = """
+            SELECT c.id, c.name, c.description, rd.quantity
+            FROM robot_decks rd
+            JOIN cards c ON rd.cards_id = c.id
+            WHERE rd.robot_id = ?
+        """
+
+        cursor.execute(query, (robot_id,))
+        rows = cursor.fetchall()
+
+        deck = [dict(row) for row in rows]
+        conn.close()
+        return deck
+    except Exception as e:
+        print(f"Erro ao buscar deck: {e}")
+        return []

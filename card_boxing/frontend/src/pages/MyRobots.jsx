@@ -76,6 +76,13 @@ export default function MyRobots() {
         }
         setEquipamento(pecasAtuais);
 
+        fetch(`http://127.0.0.1:5000/api/${robo.id}/deck`)
+            .then(res => res.json())
+            .then(data => {
+                setDeckAtual(data.cartas);
+            })
+            .catch(err => console.error('Erro ao carregar deck:', err));
+
         setModalEdicaoAberto(true);
     };
 
@@ -197,11 +204,8 @@ export default function MyRobots() {
         .catch(err => console.error("Erro:", err));
     };
 
-    // Dados simulados dos decks
-    const [listaDecks, setListaDecks] = useState([
-        { id: 1, nome: "Deck Inicial", cartas: [] },
-        { id: 2, nome: "Deck de Fogo", cartas: [] }
-    ]);
+    // Dados dos decks
+    const [deckAtual, setDeckAtual] = useState([]);
 
     //Verificação do estado do deck
     const verificarStatusDeck = (deck) => {
@@ -530,7 +534,7 @@ export default function MyRobots() {
 
                         {abaAtual === "decks" && (
                             <div>
-                                <h3>Editor de Decks</h3>
+                                <h3>Editor de Decks - {roboSendoEditado?.nome}</h3>
                                 <div>
                                     <button onClick={() => setAbaAtual("menu")}>Voltar</button>
                                     <button onClick={() => {/* Lógica para novo deck */}}>Criar novo deck</button>
@@ -546,10 +550,10 @@ export default function MyRobots() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {listaDecks.map((deck, index) => (
-                                            <tr key={deck.id}>
-                                                <td>{index + 1}</td>
-                                                <td>{deck.nome}</td>
+                                        {deckAtual.map((carta) => (
+                                            <tr key={carta.id}>
+                                                <td>{carta.id}</td>
+                                                <td>{carta.name}</td>
                                                 <td>{verificarStatusDeck(deck)}</td>
                                                 <td>
                                                     <button onClick={() => {/* Abrir editor do deck */}}>

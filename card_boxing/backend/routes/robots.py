@@ -1,7 +1,7 @@
 # Imports
 from flask import request, jsonify, Blueprint
-from database import create_robot_in_db, get_archetypes_from_db, get_full_robots_data, get_slots_from_db, rename_robot_on_db, update_robot_parts_on_db, delete_robot_from_db
-import sqlite3
+from database import create_robot_in_db, get_archetypes_from_db, get_full_robots_data, get_slots_from_db, rename_robot_on_db, update_robot_parts_on_db, delete_robot_from_db, get_robot_deck_from_db
+from config import MAX_DECK_SIZE
 
 # Construtor do flask/ Flask constructor
 robots_bp = Blueprint('robots', __name__)
@@ -105,3 +105,13 @@ def delete_robot(robot_id):
         return jsonify({"message": "Robô removido com sucesso"}), 200
     else:
         return jsonify({"error": "Erro ao deletar robô do banco de dados"}), 500
+    
+# Rota para retornar os decks
+@robots_bp.route('/<int:robot_id>/deck', methods=['GET'])
+def get_deck(robot_id):
+    deck = get_robot_deck_from_db(robot_id)
+
+    return jsonify({
+        'robot_id': robot_id,
+        'cartas': deck
+    }), 200
