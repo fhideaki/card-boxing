@@ -1,7 +1,6 @@
 # Imports
 from flask import request, jsonify, Blueprint
-from database import create_robot_in_db, get_archetypes_from_db, get_full_robots_data, get_slots_from_db, rename_robot_on_db, update_robot_parts_on_db, delete_robot_from_db, get_robot_deck_from_db
-from config import MAX_DECK_SIZE
+from database import create_robot_in_db, get_archetypes_from_db, get_full_robots_data, get_slots_from_db, rename_robot_on_db, update_robot_parts_on_db, delete_robot_from_db, get_full_inventory_and_deck, save_robot_deck, populate_initial_robot_cards, sync_robot_inventory_with_parts
 
 # Construtor do flask/ Flask constructor
 robots_bp = Blueprint('robots', __name__)
@@ -47,6 +46,9 @@ def create_robot():
     
     try:
         new_id = create_robot_in_db(robot_name, archetype_id,  player_id)
+
+        # Populando as cartas do robô criado
+        populate_initial_robot_cards(new_id, archetype_id, [])
 
         return jsonify({
             'message': 'Robô criado com sucesso!',
@@ -109,9 +111,22 @@ def delete_robot(robot_id):
 # Rota para retornar os decks
 @robots_bp.route('/<int:robot_id>/deck', methods=['GET'])
 def get_deck(robot_id):
-    deck = get_robot_deck_from_db(robot_id)
+    # Pegando as cartas dependentes das partes do robô
+    sync_robot_inventory_with_parts(robot_id)
 
-    return jsonify({
-        'robot_id': robot_id,
-        'cartas': deck
-    }), 200
+    cartas = get_full_inventory_and_deck(robot_id)
+    return jsonify({"cartas": cartas}), 200
+
+# Rota para atualizar/salvar os decks
+@robots_bp.route('/<int:robot_id>/deck', methods = ['POST'])
+def update_deck(robot_id):
+    dados = request.json
+    cartas = dados.get('cartas', [])
+
+    sucesso, mensagem = save_robot_deck(robot_id, cartas)
+
+    if sucesso:
+        return jsonify({"message": mensagem}), 200
+    else:
+        return jsonify({"error": mensagem}), 400
+    

@@ -79,7 +79,8 @@ export default function MyRobots() {
         fetch(`http://127.0.0.1:5000/api/${robo.id}/deck`)
             .then(res => res.json())
             .then(data => {
-                setDeckAtual(data.cartas);
+                console.log("Dados recebidos da API:", data);
+                setDeckAtual(data.cartas || []);
             })
             .catch(err => console.error('Erro ao carregar deck:', err));
 
@@ -208,10 +209,62 @@ export default function MyRobots() {
     const [deckAtual, setDeckAtual] = useState([]);
 
     //Verificação do estado do deck
-    const verificarStatusDeck = (deck) => {
-    // No futuro, aqui compararemos deck.cartas com as cartas liberadas pelas peças em 'equipamento'
-    // Por enquanto, vamos retornar "Válido" apenas para ilustrar
-        return "Válido"; 
+    const verificarStatusDeck = (cartas) => {
+        const total = cartas.reduce((acc, c) => acc + c.quantity, 0);
+        const DECK_SIZE = 10;
+
+        if (total === DECK_SIZE) return <span style={{color: "green"}}>Válido (10/10)</span>;
+        if (total < DECK_SIZE) return <span style={{color: "orange"}}>Incompleto ({total}/{DECK_SIZE})</span>;
+        return <span style={{color: "red"}}>Inválido ({total}/{DECK_SIZE})</span>;
+    };
+
+    // Salvar deck no banco de dados
+    const salvarDeckNoBanco = () => {
+        // Filtrando apenas as cartas que possuem quantidade maior que 0 para enviar
+        const cartasParaSalvar = deckAtual.filter(c => c.quantity > 0);
+
+        fetch(`http://127.0.0.1:5000/api/${roboSendoEditado.id}/deck`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cartas: cartasParaSalvar })
+        })
+        .then(async res => {
+            const data = await res.json();
+            if (res.ok) {
+                alert(data.message);
+                setAbaAtual("menu");
+            } else {
+                alert("Erro: " + data.error);
+            }
+        })
+        .catch(err => console.error("Erro ao salvar:", err));
+    };
+
+    // Função para incrementar/decrementar a quantidade no estado
+    const alterarQuantidadeCarta = (cartaId, incremento) => {
+        const DECK_SIZE = 10;
+        const totalAtual = deckAtual.reduce((acc, c) => acc + c.quantity, 0);
+
+        setDeckAtual(prevDeck => {
+            return prevDeck.map(c => {
+                if (c.id === cartaId) {
+                    const novaQtd = c.quantity + incremento;
+
+                    // Validações locais (front)
+                    // Não pode ser menor que 0
+                    if (novaQtd < 0) return c;
+                    // Não pode ser maior do que o jogador possui no inventário
+                    if (novaQtd > c.max_inventory) return c;
+                    // Não pode ser maior que o limite de duplicatas
+                    if (incremento > 0 && novaQtd > 3) return c;
+                    // Não pode passar o total de 15 cartas no deck
+                    if (incremento > 0 && totalAtual >= DECK_SIZE) return c;
+
+                    return { ...c, quantity: novaQtd };
+                }
+                return c;
+            });
+        });
     };
 
     // Criando as opções dos dropdowns de forma dinâmica
@@ -266,6 +319,18 @@ export default function MyRobots() {
         })
         .catch(err => console.error("Erro ao deletar:", err));
     };
+
+    // Função para atualizar os dados do modal das cartas
+    useEffect(() => {
+        if (abaAtual === "decks" && roboSendoEditado) {
+            fetch(`http://127.0.0.1:5000/api/${roboSendoEditado.id}/deck`)
+                .then(res => res.json())
+                .then(data => {
+                setDeckAtual(data.cartas || []);
+            })
+            .catch(err => console.error("Erro ao recarregar deck:", err));
+        }
+    }, [abaAtual, roboSendoEditado]);
 
     return (
         <div>
@@ -537,15 +602,15 @@ export default function MyRobots() {
                                 <h3>Editor de Decks - {roboSendoEditado?.nome}</h3>
                                 <div>
                                     <button onClick={() => setAbaAtual("menu")}>Voltar</button>
-                                    <button onClick={() => {/* Lógica para novo deck */}}>Criar novo deck</button>
+                                    <strong> Status: {verificarStatusDeck(deckAtual)}</strong>
                                 </div>
 
                                 <table>
                                     <thead>
                                         <tr>
-                                            <th>#</th>
-                                            <th>Nome do Deck</th>
-                                            <th>Estado</th>
+                                            <th>ID</th>
+                                            <th>Nome da Carta</th>
+                                            <th>Quantidade</th>
                                             <th>Ações</th>
                                         </tr>
                                     </thead>
@@ -554,19 +619,22 @@ export default function MyRobots() {
                                             <tr key={carta.id}>
                                                 <td>{carta.id}</td>
                                                 <td>{carta.name}</td>
-                                                <td>{verificarStatusDeck(deck)}</td>
+                                                <td>{carta.quantity} / {carta.max_inventory}</td>
                                                 <td>
-                                                    <button onClick={() => {/* Abrir editor do deck */}}>
-                                                        Editar
-                                                    </button>
-                                                    <button onClick={() => {/* Deletar Deck */}}>
-                                                        Excluir
-                                                    </button>
+                                                    <button onClick={() => alterarQuantidadeCarta(carta.id, -1)}>-</button>
+                                                    <button onClick={() => alterarQuantidadeCarta(carta.id, 1)}>+</button>
                                                 </td>
                                             </tr>
                                         ))}
                                     </tbody>
                                 </table>
+
+                                {/* Botão para enviar o estado deckAtual consolidado para o Backend */}
+                                <button
+                                    disabled={deckAtual.reduce((acc, c) => acc + c.quantity, 0) !== 10}
+                                    onClick={salvarDeckNoBanco}>
+                                    Salvar Deck
+                                </button>
                             </div>
                         )}
 

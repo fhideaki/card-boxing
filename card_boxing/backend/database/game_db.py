@@ -348,5 +348,38 @@ def init_db():
         )
     """, resistances)
 
+    archetype_cards_data = [
+        # Arquétipo ATK (Ataque)
+        ('atk', 1, 3), # Simple Guard
+        ('atk', 2, 3), # Simple Attack
+        ('atk', 3, 3), # Clinch
+        ('atk', 4, 2), # Strong Attack
+
+        # Arquétipo DEF (Defesa)
+        ('def', 1, 3),
+        ('def', 2, 3),
+        ('def', 3, 3),
+        ('def', 5, 2), # Special Guard
+
+        # Arquétipo BAL (Balanceado)
+        ('bal', 1, 3),
+        ('bal.id', 2, 3),
+        ('bal', 3, 3),
+        ('bal', 4, 1), # Strong Attack
+        ('bal', 5, 1)  # Special Guard
+    ]
+
+    cursor.executemany("""
+        INSERT OR IGNORE INTO archetype_starting_cards (
+            archetype_id,
+            card_id,
+            quantity
+        ) VALUES (
+            (SELECT id FROM robot_archetypes WHERE archetype_name = ?),
+            ?,
+            ?
+        )
+    """, archetype_cards_data)
+
     conn.commit()
     conn.close()

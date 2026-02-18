@@ -1,5 +1,6 @@
 import sqlite3
 import bcrypt
+from config import DECK_SIZE, MAX_DUPLICATE_CARDS
 
 DB_NAME = 'card_game.db'
 
@@ -364,7 +365,7 @@ def get_robot_deck_from_db(robot_id):
         query = """
             SELECT c.id, c.name, c.description, rd.quantity
             FROM robot_decks rd
-            JOIN cards c ON rd.cards_id = c.id
+            JOIN cards c ON rd.card_id = c.id
             WHERE rd.robot_id = ?
         """
 
@@ -377,3 +378,147 @@ def get_robot_deck_from_db(robot_id):
     except Exception as e:
         print(f"Erro ao buscar deck: {e}")
         return []
+    
+# Método para adicionar/atualizar um deck de um robô
+def save_robot_deck(robot_id, lista_cartas):
+    # Validando a quantidade de cartas
+    total_cards = sum(c['quantity'] for c in lista_cartas)
+
+    if total_cards != DECK_SIZE:
+        return False, f"O deck precisa ter exatamente {DECK_SIZE} cartas. Total enviado: {total_cards}"
+    
+    # Validação de duplicatas
+    for c in lista_cartas:
+        if c['quantity'] > MAX_DUPLICATE_CARDS:
+            return False, f"Máximo de {MAX_DUPLICATE_CARDS} cópias por carta excedido."
+        
+    try:
+        conn = sqlite3.connect('card_game.db')
+        cursor = conn.cursor()
+
+        # Limpa o deck atual
+        cursor.execute("DELETE FROM robot_decks WHERE robot_id = ?", (robot_id,))
+
+        # Insere as cartas novas
+        for carta in lista_cartas:
+            cursor.execute("""
+                INSERT INTO robot_decks (robot_id, card_id, quantity)
+                VALUES (?, ?, ?)    
+            """, (robot_id, carta['id'], carta['quantity']))
+
+        conn.commit()
+        conn.close()
+        return True, "Deck salvo com sucesso!"
+    
+    except Exception as e:
+        print(f"Erro ao salvar deck {e}")
+        return False, "Erro interno no banco de dados"
+    
+# Método para buscar todas as cartas disponíveis do robô em questão
+def get_full_inventory_and_deck(robot_id):
+    try:
+        conn = sqlite3.connect('card_game.db')
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+
+        # Buscando todas as cartas disponíveis e cruzando com o deck ativo
+        query = """
+            SELECT
+                c.id, 
+                c.name,
+                rac.quantity AS max_inventory,
+                COALESCE(rd.quantity, 0) AS quantity
+            FROM robot_available_cards rac
+            JOIN cards c ON rac.card_id = c.id
+            LEFT JOIN robot_decks rd ON rd.card_id = c.id AND rd.robot_id = rac.robot_id
+            WHERE rac.robot_id = ?    
+        """
+
+        cursor.execute(query, (robot_id,))
+        rows = cursor.fetchall()
+
+        cartas = [dict(row) for row in rows]
+        print(f"Cartas encontradas para o robô {robot_id}: {len(cartas)}")
+        conn.close()
+        return cartas
+
+    except Exception as e:
+        print(f"Erro ao buscar inventário/deck: {e}")
+        return []    
+
+# Popular a tabela de cartas do robô quando ele é criado
+def populate_initial_robot_cards(robot_id, archetype_id, equipped_parts):
+
+    try:
+        conn = sqlite3.connect('card_game.db')
+        cursor = conn.cursor()
+
+        # Buscando as cartas que estão pré-definidas de acordo com o arquétipo
+        cursor.execute("""
+            SELECT card_id, quantity FROM archetype_starting_cards
+            WHERE archetype_id = ?
+        """, (archetype_id, ))
+
+        archetype_cards = cursor.fetchall()
+
+        for card_id, qty in archetype_cards:
+            cursor.execute("""
+                INSERT OR REPLACE INTO robot_available_cards (robot_id, card_id, quantity, source)
+                VALUES (?, ?, ?, 'archetype')
+            """, (robot_id, card_id, qty))
+
+        # Cartas das peças que o robô equipou
+        for part in equipped_parts:
+            if part and 'special_card' in part:
+                card_id = part['special_card'].get('id')
+                if card_id:
+                    cursor.execute("""
+                        INSERT OR REPLACE INTO robot_available_cards (robot_id, card_id, quantity, source)
+                        VALUES (?, ?, 1, 'part')
+                    """, (robot_id, card_id))
+
+        conn.commit()
+        conn.close()
+        return True
+    
+    except Exception as e:
+        print(f"Erro ao popular inventário inicial: {e}")
+        return False
+    
+# Função para verificar as peças do robô e atualizar as cartas de acordo com as peças encontradas
+def sync_robot_inventory_with_parts(robot_id):
+    try:
+        conn = sqlite3.connect('card_game.db')
+        cursor = conn.cursor()
+
+        # Remover as cartas que vêm de peças desequipadas
+        cursor.execute("""
+            DELETE FROM robot_available_cards
+            WHERE robot_id = ? AND source = 'part'
+        """, (robot_id,))
+
+        # Buscando os IDs das peças que estão equipadas no robô
+        pecas_equipadas = get_equipped_parts_detailed(robot_id)
+
+        for peca in pecas_equipadas:
+            card_id = peca['card_id']
+
+            if card_id:
+                cursor.execute("""
+                    INSERT OR IGNORE INTO robot_available_cards (robot_id, card_id, quantity, source)
+                    VALUES (?, ?, 1, 'part')
+                """, (robot_id, card_id))
+
+        # Limpar a carta do deck para que ela não seja exibida se não estiver disponível
+        cursor.execute("""
+            DELETE FROM robot_decks
+            WHERE robot_id = ? AND card_id NOT IN (
+                SELECT card_id FROM robot_available_cards WHERE robot_id = ?
+            )
+        """, (robot_id, robot_id))
+            
+        conn.commit()
+        conn.close()
+    
+    except Exception as e:
+        print(f"Erro ao sincronizar inventário: {e}")
