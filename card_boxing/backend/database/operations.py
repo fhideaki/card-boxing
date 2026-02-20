@@ -522,3 +522,30 @@ def sync_robot_inventory_with_parts(robot_id):
     
     except Exception as e:
         print(f"Erro ao sincronizar inventário: {e}")
+
+# Função para iniciar uma nova batalha
+def start_new_battle(p1_robot_id, p2_robot_id, rounds, turns):
+    conn = sqlite3.connect('card_game.db')
+    cursor = conn.cursor()
+
+    # Buscar os IDs dos usuários que estão na batalha
+    cursor.execute("SELECT player_id FROM robots WHERE id = ?", (p1_robot_id,))
+    p1_user_id = cursor.fetchone()[0]
+
+    cursor.execute("SELECT player_id FROM robots WHERE id = ?", (p2_robot_id,))
+    p2_user_id = cursor.fetchone()[0]
+
+    # Inserir a batalha do BD
+    cursor.execute("""
+        INSERT INTO battles (
+        p1_user_id, p1_robot_id,
+        p2_user_id, p2_robot_id,
+        num_rounds, turns_per_round
+        ) VALUES (?, ?, ?, ?, ?, ?)
+    """, (p1_user_id, p1_robot_id, p2_user_id, p2_robot_id, rounds, turns))
+
+    battle_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+
+    return battle_id

@@ -187,6 +187,24 @@ def init_db():
     )
     """)
 
+    # Tabela que armazena as batalhas
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS battles (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        p1_user_id INTEGER,
+        p1_robot_id INTEGER,
+        p2_user_id INTEGER,
+        p2_robot_id INTEGER,
+        num_rounds INTEGER,
+        turns_per_round INTEGER,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (p1_user_id) REFERENCES players(id),
+        FOREIGN KEY (p2_user_id) REFERENCES players(id),        
+        FOREIGN KEY (p1_robot_id) REFERENCES robots(id),        
+        FOREIGN KEY (p2_robot_id) REFERENCES robots(id)
+    )
+    """)
+
     archetypes = [
         ('atk', 6, 10, 8, 6),
         ('def', 10, 6, 6, 8),
