@@ -9,6 +9,7 @@ from .turn import Turn
 from .game_judge import GameJudge
 from .damage_calculator import DamageCalculator
 from .null_ui import NullUIManager
+from .i18n import CARD_NAME_PT, CARD_DESCRIPTION_PT
 
 # Partidas em andamento, guardadas em memória (sem persistência em disco - ver plano/riscos aceitos)
 BATTLES = {}
@@ -41,12 +42,13 @@ def build_card_lookup():
 def strip_card(card):
     if card is None:
         return None
+    nome_en = card.get('name')
     return {
         'id': card.get('id'),
-        'name': card.get('name'),
+        'name': CARD_NAME_PT.get(nome_en, nome_en),
         'class': card.get('class'),
         'type': card.get('type'),
-        'description': card.get('description'),
+        'description': CARD_DESCRIPTION_PT.get(nome_en, card.get('description')),
     }
 
 
@@ -170,12 +172,12 @@ def submit_turn(battle_id, card_id):
             p1_score = gamejudge.score[player1]
             p2_score = gamejudge.score[player2]
             if p1_score == p2_score:
-                gamejudge.log_message(f"Round limit reached ({turn_limit} turns). Score tied {p1_score}-{p2_score}.")
+                gamejudge.log_message(f"Limite de turnos atingido ({turn_limit} turnos). Placar empatado em {p1_score}-{p2_score}.")
                 gamejudge.game_over = True
-                gamejudge.win_reason = "Score"
+                gamejudge.win_reason = "Decisão por pontos."
             else:
                 winner = player1 if p1_score > p2_score else player2
-                gamejudge.declare_winner(winner, "Score")
+                gamejudge.declare_winner(winner, "Decisão por pontos.")
 
     resolved_turn = {
         'player_card': strip_card(player_card_played),

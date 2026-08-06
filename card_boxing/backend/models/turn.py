@@ -2,6 +2,7 @@ from .effects import *
 from .player import Player
 from .game_judge import GameJudge
 from .damage_calculator import DamageCalculator
+from .i18n import nome_carta_pt
 import random
 
 # Criando a classe Game - Ela vai iniciar uma partida
@@ -60,15 +61,15 @@ class Turn:
         if p1_out and p2_out:
             score = self.gamejudge.score
             for player, player_score in score:
-                self.gamejudge.log_message(f"The {player.name} has scored {player_score} points.")
+                self.gamejudge.log_message(f"{player.name} marcou {player_score} ponto(s).")
             winner = self.gamejudge.return_score_winner()
-            self.gamejudge.declare_winner(winner, "Score")
-   
+            self.gamejudge.declare_winner(winner, "Decisão por pontos.")
+
             # Se nao possuir cartas em mãos E não possuir cartas para comprar - O jogador está derrotado.
         if p1_out and not p2_out:
-            self.gamejudge.declare_winner(self.player2, "Incapacitated Opponent.")
+            self.gamejudge.declare_winner(self.player2, "Oponente incapacitado.")
         if p2_out and not p1_out:
-            self.gamejudge.declare_winner(self.player1, "Incapacitated Opponent.")
+            self.gamejudge.declare_winner(self.player1, "Oponente incapacitado.")
             
     
     # Segunda fase (compra) - Jogadores compram as cartas se forem permitidos.
@@ -160,7 +161,7 @@ class Turn:
                 reflected_damage = 0.20 * p1_base_defense
                 self.player2.initial_HP -= reflected_damage
                 damage_dealt[self.player2] += reflected_damage
-                self.gamejudge.log_message(f"Player 1 - {p1_name} - used Iron Guard! Reflected {reflected_damage} points of damage!")
+                self.gamejudge.log_message(f"{p1_name} usou Guarda de Ferro e refletiu {reflected_damage} de dano!")
                 self.gamejudge.player_down(self.player1, self.player2)
                 print(self.player1.initial_HP)
                 print(self.player2.initial_HP)
@@ -170,7 +171,7 @@ class Turn:
                 reflected_damage = 0.20 * p2_base_defense
                 self.player1.initial_HP -= reflected_damage
                 damage_dealt[self.player1] += reflected_damage
-                self.gamejudge.log_message(f"Player 2 - {p2_name} - used Iron Guard! Reflected {reflected_damage} points of damage!")
+                self.gamejudge.log_message(f"{p2_name} usou Guarda de Ferro e refletiu {reflected_damage} de dano!")
                 self.gamejudge.player_down(self.player2, self.player1)
                 print(self.player1.initial_HP)
                 print(self.player2.initial_HP)
@@ -189,7 +190,7 @@ class Turn:
                 print(self.player1.draw_blocked)
                 self.gamejudge.set_draw_lock(self.player2)
                 print(self.player2.draw_blocked)
-                self.gamejudge.log_message("Both players clinched! No drawing cards next turn")
+                self.gamejudge.log_message("Os dois robôs se agarraram! Ninguém compra carta no próximo turno.")
 
             # Se somente o p1 usar clinch
             elif p1_current_action == 'clinch' and not p2_current_action == 'clinch':
@@ -212,15 +213,15 @@ class Turn:
                 print(base_damage)
                 if card_player1['name'] == 'Strong Attack':
                     base_damage = 2 * base_damage
-                    self.gamejudge.log_message(f"Player 1 - {p1_name} - used Strong Attack! Damage doubled to {base_damage}")
+                    self.gamejudge.log_message(f"{p1_name} usou Ataque Forte! Dano dobrado para {base_damage}.")
                 elif card_player1['name'] == 'Rubber Attack':
                     self.gamejudge.set_draw_lock(self.player2)
-                    self.gamejudge.log_message(f"Player 1 - {p1_name} - used Rubber Arm! The attack connected and now Player 2 - {p2_name} is clinched!")
+                    self.gamejudge.log_message(f"{p1_name} usou Ataque de Borracha! O golpe conectou e agora {p2_name} está agarrado!")
                 elif card_player1['name'] == 'Fiery Punch':
                     self.gamejudge.drop_hand_slot(self.player2, 1)
-                    self.gamejudge.log_message(f"Player 1 - {p1_name} - used Fiery Punch! Player 2 - {p2_name} lost 1 hand slot!")
+                    self.gamejudge.log_message(f"{p1_name} usou Soco Flamejante! {p2_name} perdeu 1 espaço na mão!")
 
-                
+
                 # Aumenta o score
                 self.gamejudge.give_point(self.player1)
                 print('P1 +1 Ponto')
@@ -230,7 +231,7 @@ class Turn:
                 self.player2.initial_HP -= base_damage
                 damage_dealt[self.player2] += base_damage
                 print(self.player2.initial_HP)
-                self.gamejudge.log_message(f"Player 1 - {p1_name} - Attack connected! {base_damage} points of damage applied!")
+                self.gamejudge.log_message(f"{p1_name} acertou o golpe! {base_damage} de dano aplicado!")
                 self.gamejudge.player_down(self.player1, self.player2)
 
             elif p2_current_action == 'attack' and p1_current_action == 'clinch':
@@ -240,13 +241,13 @@ class Turn:
                 print(base_damage)
                 if card_player2['name'] == 'Strong Attack':
                     base_damage = 2 * base_damage
-                    self.gamejudge.log_message(f"Player 2 - {p2_name} - used Strong Attack! Damage doubled to {base_damage}")
+                    self.gamejudge.log_message(f"{p2_name} usou Ataque Forte! Dano dobrado para {base_damage}.")
                 elif card_player2['name'] == 'Rubber Attack':
                     self.gamejudge.set_draw_lock(self.player1)
-                    self.gamejudge.log_message(f"Player 2 - {p2_name} - used Rubber Arm! The attack connected and now Player 1 - {p1_name} is clinched!")
+                    self.gamejudge.log_message(f"{p2_name} usou Ataque de Borracha! O golpe conectou e agora {p1_name} está agarrado!")
                 elif card_player2['name'] == 'Fiery Punch':
                     self.gamejudge.drop_hand_slot(self.player1, 1)
-                    self.gamejudge.log_message(f"Player 2 - {p2_name} - used Fiery Punch! Player 1 - {p1_name} lost 1 hand slot!")
+                    self.gamejudge.log_message(f"{p2_name} usou Soco Flamejante! {p1_name} perdeu 1 espaço na mão!")
 
 
                 # Aumenta o score
@@ -258,7 +259,7 @@ class Turn:
                 self.player1.initial_HP -= base_damage
                 damage_dealt[self.player1] += base_damage
                 print(self.player1.initial_HP)
-                self.gamejudge.log_message(f"Player 2 - {p2_name} - Attack connected! {base_damage} points of damage applied!")
+                self.gamejudge.log_message(f"{p2_name} acertou o golpe! {base_damage} de dano aplicado!")
                 self.gamejudge.player_down(self.player2, self.player1)
 
             # Dois ataques simultâneos
@@ -305,7 +306,7 @@ class Turn:
                         resistances_second = p2_resistances_multiplier
                         
                         # Log de desempate
-                        self.gamejudge.log_message(f"Agility tie! But Player 1 {self.player1.name} was a little faster!")
+                        self.gamejudge.log_message(f"Empate de agilidade! Mas {self.player1.name} foi um pouco mais rápido!")
                     else:
                         first_attacker = self.player2
                         second_attacker = self.player1
@@ -317,7 +318,7 @@ class Turn:
                         resistances_second = p1_resistances_multiplier
                         
                         # Log de desempate
-                        self.gamejudge.log_message(f"Agility tie! But Player 2 {self.player2.name} was a little faster!")
+                        self.gamejudge.log_message(f"Empate de agilidade! Mas {self.player2.name} foi um pouco mais rápido!")
 
 
                     # Primeiro Ataque
@@ -343,22 +344,22 @@ class Turn:
         # Aplicar Efeitos da Carta do Atacante
         if card_attacker['name'] == 'Strong Attack':
             base_damage = 2 * base_damage
-            self.gamejudge.log_message(f"Player {attacker.name} - used Strong Attack! Damage doubled to {base_damage}")
-        
+            self.gamejudge.log_message(f"{attacker.name} usou Ataque Forte! Dano dobrado para {base_damage}.")
+
         elif card_attacker['name'] == 'Rubber Attack':
             self.gamejudge.set_draw_lock(target)
-            self.gamejudge.log_message(f"Player {attacker.name} - used Rubber Arm! The attack connected and now Player {target.name} is clinched!")
-        
+            self.gamejudge.log_message(f"{attacker.name} usou Ataque de Borracha! O golpe conectou e agora {target.name} está agarrado!")
+
         elif card_attacker['name'] == 'Fiery Punch':
             self.gamejudge.drop_hand_slot(target, 1)
-            self.gamejudge.log_message(f"Player {attacker.name} - used Fiery Punch! Player {target.name} lost 1 hand slot!")
-        
+            self.gamejudge.log_message(f"{attacker.name} usou Soco Flamejante! {target.name} perdeu 1 espaço na mão!")
+
         # Aumenta o score
         self.gamejudge.give_point(attacker)
 
         # Aplica o dano no HP do alvo
         target.initial_HP -= base_damage
-        self.gamejudge.log_message(f"Player {attacker.name} - Attack connected! {base_damage} points of damage applied!")
+        self.gamejudge.log_message(f"{attacker.name} acertou o golpe! {base_damage} de dano aplicado!")
         
         print(attacker.initial_HP)
         print(target.initial_HP)

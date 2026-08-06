@@ -3,6 +3,7 @@ from .player import Player
 from .deck import Deck
 from .robot import Robot
 from .static import conflicts_table
+from .i18n import nome_carta_pt
 from typing import Dict, Any, Tuple, List, TYPE_CHECKING
 from .damage_calculator import DamageCalculator
 import random
@@ -12,7 +13,7 @@ class GameJudge:
     def __init__(self, ui_manager, damage_calculator: DamageCalculator):
         # Inicializando o gerenciador de UI
         self.ui = ui_manager
-        self.ui.printMessage('Judge created.')
+        self.ui.printMessage('Juiz criado.')
 
         # Inicializando a calculadora de danos
         self.damage_calculator = damage_calculator
@@ -34,7 +35,7 @@ class GameJudge:
     # Métodos auxiliares
         # Método para printar as mensagens para o jogo
     def log_message(self, message):
-        self.ui.printMessage(f"Turn {self.turn} - {message}")
+        self.ui.printMessage(f"Turno {self.turn} - {message}")
         
     # Métodos para registrar informações
         # Registrar carta lançada
@@ -43,7 +44,7 @@ class GameJudge:
         self.current_turn_actions[player] = card
 
         # Mostra a mensagem
-        self.log_message(f"Judge: {player.name} played '{card.get('name')}'.") 
+        self.log_message(f"Juiz: {player.name} jogou '{nome_carta_pt(card.get('name'))}'.")
 
         # Registrar o dano que vai ser aplicado
     def register_damage_dealt(self, player, damage):
@@ -99,12 +100,12 @@ class GameJudge:
         # Método para definir status de invulnerável
     def set_invulnerability(self, player):
         player.is_invincible = True
-        self.log_message(f"Judge: {player.name} invulnerability enabled!")
-        
+        self.log_message(f"Juiz: {player.name} ficou invulnerável!")
+
         # Método para remover status de invulnerável
     def reset_invulnerability(self, player):
         player.is_invincible = False
-        self.log_message(f"Judge: {player.name} invulnerability disabled!")
+        self.log_message(f"Juiz: {player.name} não está mais invulnerável.")
 
         # Método para retornar True se estiver invulnerável
     def is_invulnerable(self, player):
@@ -216,7 +217,7 @@ class GameJudge:
 
         player.max_hand_slots = new_limit
         
-        self.log_message(f"Judge: Cards in hand limit of the {player.name} player dropped {num_slots}. New limit: {player.max_hand_slots}.")
+        self.log_message(f"Juiz: limite de cartas na mão de {player.name} caiu em {num_slots}. Novo limite: {player.max_hand_slots}.")
         
     # Método para checar a HP do robô.
     def is_knocked_out(self, player) -> bool:
@@ -258,8 +259,8 @@ class GameJudge:
         if self.game_over:
             return
 
-        self.log_message("---GAME OVER---")
-        self.log_message(f"Winner: {winner.name}")
+        self.log_message("---FIM DE JOGO---")
+        self.log_message(f"Vencedor: {winner.name}")
         self.log_message(reason)
 
         self.game_over = True
@@ -272,18 +273,18 @@ class GameJudge:
             print(f'{target.name} is down!')
 
             if self.is_incapacitaded(target):
-                self.declare_winner(attacker, "K.O.")
+                self.declare_winner(attacker, "Nocaute!")
             else:
                 ko_cost = self.apply_ko_cost(target)
                 print(f'Cost to get up {ko_cost}')
 
                 if self.apply_ko(target, ko_cost):
-                    self.declare_winner(attacker, "K.O.")
+                    self.declare_winner(attacker, "Nocaute!")
                 else:
                     can_pay_ko_cost = self.discard_from_deck(target, ko_cost)
 
                     if not can_pay_ko_cost:
-                        self.declare_winner(attacker, "K.O.")
+                        self.declare_winner(attacker, "Nocaute!")
                     else: 
                         self.recover_player_hp(target)
         return
@@ -307,7 +308,7 @@ class GameJudge:
 
         # Se já não há cartas o suficiente para serem descartadas
         if num_cards >= total_cards:
-            self.log_message(f"Player {player.name} does not have enough cards to discard.")
+            self.log_message(f"{player.name} não tem cartas suficientes para descartar.")
             return False
         
         # Descartando primeiro do deck
@@ -331,8 +332,8 @@ class GameJudge:
                 random_card = random.choice(player.hand)
                 player.hand.remove(random_card)
                 player.graveyard.append(random_card)
-        self.log_message(f"Player {player.name} discarded {cards_to_discard_from_deck} cards from deck and {cards_to_discard_from_hand} cards from hand.")
-        return True    
+        self.log_message(f"{player.name} descartou {cards_to_discard_from_deck} carta(s) do baralho e {cards_to_discard_from_hand} carta(s) da mão.")
+        return True
         
     # Método para retirar uma carta da mão do jogador
     def discard_from_hand(self, player, num_cards):
@@ -341,13 +342,13 @@ class GameJudge:
                 random_card = random.choice(player.hand)
                 player.hand.remove(random_card)
                 player.graveyard.append(random_card)
-            self.log_message(f"Player {player.name} discarded {num_cards} cards.")
+            self.log_message(f"{player.name} descartou {num_cards} carta(s).")
         else:
             for card in len(player.hand):
                 random_card = random.choice(player.hand)
                 player.hand.remove(random_card)
                 player.graveyard.append(random_card)
-            self.log_message(f"Player {player.name} discarded {num_cards} cards.")
+            self.log_message(f"{player.name} descartou {num_cards} carta(s).")
 
     # Reseta o placar
     def reset_score(self, player):
@@ -363,6 +364,6 @@ class GameJudge:
         player_hp_full = player.robot.HP
 
         player.initial_HP = self.damage_calculator.apply_hp_recover(player.fall_counter, player_hp_full)
-        self.log_message(f"Player {player.name} has recovered {player.initial_HP}/{player_hp_full} HP!")
+        self.log_message(f"{player.name} se recuperou! {player.initial_HP}/{player_hp_full} HP.")
 
         return True

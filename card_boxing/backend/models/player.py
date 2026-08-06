@@ -92,14 +92,14 @@ class Player:
             # Se não tiver, ele vai transformar num_of_cards na mesma quantidade de cards restantes.
             num_of_cards = len(self.game_deck)
             # Avisa quantas cartas estão disponíveis para compra no caso do game deck ser insuficiente.
-            self.ui.printMessage(f"Only {num_of_cards} cards available. ")
+            self.ui.printMessage(f"Só {num_of_cards} carta(s) disponível(is) para compra.")
         
         # Compra de cartas
         cards_drawn = 0
         while cards_drawn < num_of_cards:
             # Checa se a mão está cheia
             if len(self.hand) >= self.max_hand_slots:
-                self.ui.printMessage(f"Player {self.name}'s hand is full!'")
+                self.ui.printMessage(f"A mão de {self.name} está cheia!")
                 break
                 
             # Checa se o deck ficou vazio durante a compra
