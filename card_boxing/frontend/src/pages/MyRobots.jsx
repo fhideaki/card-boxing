@@ -40,7 +40,7 @@ export default function MyRobots() {
                 carregarRobos();
                 setModalAberto(false); // Fecha o modal
                 setNovoNome(""); // Limpa os campos
-                setNovoArquetipo(""); 
+                setNovoArquetipo("");
             } else {
                 alert("Erro ao criar robô.");
             }
@@ -129,7 +129,7 @@ export default function MyRobots() {
         carregarRobos();
         carregarSlots();
         carregarPecas();
-    }, []); 
+    }, []);
 
     // Dados dos slots
     const [slotsConfig, setSlotsConfig] = useState([]);
@@ -190,7 +190,7 @@ export default function MyRobots() {
         });
 
         fetch(`http://127.0.0.1:5000/api/${roboSendoEditado.id}/equip`, {
-            method: 'PATCH', 
+            method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON. stringify({ parts: listaParaEnviar })
         })
@@ -213,9 +213,9 @@ export default function MyRobots() {
         const total = cartas.reduce((acc, c) => acc + c.quantity, 0);
         const DECK_SIZE = 10;
 
-        if (total === DECK_SIZE) return <span style={{color: "green"}}>Válido (10/10)</span>;
-        if (total < DECK_SIZE) return <span style={{color: "orange"}}>Incompleto ({total}/{DECK_SIZE})</span>;
-        return <span style={{color: "red"}}>Inválido ({total}/{DECK_SIZE})</span>;
+        if (total === DECK_SIZE) return <span className="text-emerald-400">Válido (10/10)</span>;
+        if (total < DECK_SIZE) return <span className="text-amber-400">Incompleto ({total}/{DECK_SIZE})</span>;
+        return <span className="text-red-400">Inválido ({total}/{DECK_SIZE})</span>;
     };
 
     // Salvar deck no banco de dados
@@ -270,8 +270,8 @@ export default function MyRobots() {
     // Criando as opções dos dropdowns de forma dinâmica
     // Usando o objeto Set para garantir que não ocorram repetições
     const opcoesArquetipos = [...new Set(meusRobos.map(r => r.arquetipo))];
-    const opcoesFraquezas = [...new Set(meusRobos.flatMap(r => r.fraquezas))]; 
-    const opcoesResistencias = [...new Set(meusRobos.flatMap(r => r.resistencias))]; 
+    const opcoesFraquezas = [...new Set(meusRobos.flatMap(r => r.fraquezas))];
+    const opcoesResistencias = [...new Set(meusRobos.flatMap(r => r.resistencias))];
 
     // Lógica para a filtragem combinada
     const robosFiltrados = meusRobos.filter((robo) => {
@@ -301,7 +301,7 @@ export default function MyRobots() {
         Object.values(equipamento).forEach(peca => {
             if (peca && peca[campo]) todos.push(...peca[campo]);
         });
-        return todos; 
+        return todos;
     };
 
     // Função para deletar um robô
@@ -332,9 +332,26 @@ export default function MyRobots() {
         }
     }, [abaAtual, roboSendoEditado]);
 
+    // Classes reutilizadas para manter consistência visual com o resto do app
+    const inputClasses =
+        "w-full rounded-lg border border-slate-700 bg-slate-800/80 px-4 py-2.5 text-slate-100 " +
+        "shadow-sm transition placeholder:text-slate-500 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/40";
+    const selectClasses =
+        "w-full appearance-none rounded-lg border border-slate-700 bg-slate-800/80 px-3 py-2 text-sm text-slate-100 " +
+        "shadow-sm transition focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/40";
+    const thClasses = "whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400";
+    const primaryBtn =
+        "rounded-lg bg-gradient-to-r from-red-600 to-red-500 px-4 py-2 text-sm font-semibold text-white " +
+        "shadow-sm shadow-red-600/30 transition hover:from-red-500 hover:to-red-400 disabled:cursor-not-allowed disabled:opacity-40";
+    const secondaryBtn =
+        "rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-700";
+    const dangerBtn =
+        "rounded-lg border border-red-900/50 bg-red-950/30 px-3 py-1.5 text-sm font-medium text-red-400 transition hover:bg-red-900/40 hover:text-red-300";
+    const modalOverlay = "fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 px-4 py-8";
+
     return (
-        <div>
-            <h1>Meus Robôs</h1>
+        <div className="mx-auto max-w-6xl px-6 py-10">
+            <h1 className="text-2xl font-bold tracking-tight text-white">Meus Robôs</h1>
 
             {/* Campo de BuscaRobo */}
             <input
@@ -342,305 +359,347 @@ export default function MyRobots() {
                 placeholder="Digite o nome do robô..."
                 value={buscaRobo}
                 onChange={(e) => setBuscaRobo(e.target.value)}
+                className={"mt-6 max-w-sm " + inputClasses}
             />
 
-            <div>
+            <div className="mt-4 flex flex-wrap items-end gap-4">
                 {/* Filtro de Arquétipo */}
-                <div>
-                    <label>Arquétipo: </label>
-                    <select value={arquetipoSelecionado} onChange={(e) => setArquetipoSelecionado(e.target.value)}>
+                <div className="w-48">
+                    <label className="mb-1.5 block text-sm font-medium text-slate-300">Arquétipo:</label>
+                    <select className={selectClasses} value={arquetipoSelecionado} onChange={(e) => setArquetipoSelecionado(e.target.value)}>
                         <option value="">Todos</option>
                         {opcoesArquetipos.map(a => <option key={a} value={a}>{a}</option>)}
                     </select>
                 </div>
 
                 {/* Filtro de Fraquezas */}
-                <div>
-                    <label>Fraquezas: </label>
-                    <select value={tipoFraquezaSelecionado} onChange={(e) => setTipoFraquezaSelecionado(e.target.value)}>
+                <div className="w-48">
+                    <label className="mb-1.5 block text-sm font-medium text-slate-300">Fraquezas:</label>
+                    <select className={selectClasses} value={tipoFraquezaSelecionado} onChange={(e) => setTipoFraquezaSelecionado(e.target.value)}>
                         <option value="">Todas</option>
                         {opcoesFraquezas.map(f => <option key={f} value={f}>{f}</option>)}
                     </select>
-                </div>                
-                
+                </div>
+
                 {/* Filtro de Resistências */}
-                <div>
-                    <label>Resistências: </label>
-                    <select value={tipoResistenciaSelecionado} onChange={(e) => setTipoResistenciaSelecionado(e.target.value)}>
+                <div className="w-48">
+                    <label className="mb-1.5 block text-sm font-medium text-slate-300">Resistências:</label>
+                    <select className={selectClasses} value={tipoResistenciaSelecionado} onChange={(e) => setTipoResistenciaSelecionado(e.target.value)}>
                         <option value="">Todas</option>
                         {opcoesResistencias.map(r => <option key={r} value={r}>{r}</option>)}
                     </select>
                 </div>
 
                 {/* Botão para criar robô */}
-                <div>
-                    <button onClick={() => setModalAberto(true)}>Criar Robô</button>
+                <div className="ml-auto">
+                    <button className={primaryBtn} onClick={() => setModalAberto(true)}>+ Criar Robô</button>
                 </div>
             </div>
 
-            <table border="1">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nome</th>
-                        <th>Arquétipo</th>
-                        <th>Fraquezas</th>
-                        <th>Resistências</th>
-                        <th>Constituição</th>
-                        <th>Força</th>
-                        <th>Agilidade</th>
-                        <th>HP</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {/* Usando a lista filtrada para o map */}
-                    {robosFiltrados.map((robo) => (
-                        <tr key={robo.id}>
-                            <td>{robo.id}</td>
-                            <td>{robo.nome}</td>
-                            <td>{robo.arquetipo}</td>
-                            <td>
-                                {[...new Set(robo.fraquezas)].map(fra => {
-                                    const quantidade = robo.fraquezas.filter(f => f === fra).length;
-                                    return <span key={fra}>{fra} ({quantidade})</span>;
-                                })}
-                            </td>
-                            <td>
-                                {[...new Set(robo.resistencias)].map(res => {
-                                    const quantidade = robo.resistencias.filter(r => r === res).length;
-                                    return <span key={res}>{res} ({quantidade})</span>;
-                                })}
-                            </td>
-                            <td>{robo.constituicao}</td>
-                            <td>{robo.forca}</td>
-                            <td>{robo.agilidade}</td>
-                            <td>{robo.hp}</td>
-                            <td>
-                                <button onClick={() => abrirModalEdicao(robo)}>
-                                    Editar
-                                </button>
-
-                                <button onClick={() => {
-                                    // Lógica simples de deletar, por enquanto é apenas um aviso ou filtro
-                                    if(window.confirm(`Deseja deletar o robô ${robo.nome}?`)) {
-                                        handleDeletarRobo(robo.id);
-                                    }
-                                }}>
-                                    Deletar
-                                </button>
-                            </td>
+            <div className="mt-6 overflow-x-auto rounded-xl border border-slate-800 shadow-lg">
+                <table className="w-full border-collapse bg-slate-900/60 text-sm">
+                    <thead className="bg-slate-800/80">
+                        <tr>
+                            <th className={thClasses}>ID</th>
+                            <th className={thClasses}>Nome</th>
+                            <th className={thClasses}>Arquétipo</th>
+                            <th className={thClasses}>Fraquezas</th>
+                            <th className={thClasses}>Resistências</th>
+                            <th className={thClasses}>Constituição</th>
+                            <th className={thClasses}>Força</th>
+                            <th className={thClasses}>Agilidade</th>
+                            <th className={thClasses}>HP</th>
+                            <th className={thClasses}>Ações</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>  
+                    </thead>
+                    <tbody className="divide-y divide-slate-800">
+                        {/* Usando a lista filtrada para o map */}
+                        {robosFiltrados.map((robo) => (
+                            <tr key={robo.id} className="transition hover:bg-slate-800/50">
+                                <td className="whitespace-nowrap px-4 py-3 text-slate-300">{robo.id}</td>
+                                <td className="whitespace-nowrap px-4 py-3 font-medium text-white">{robo.nome}</td>
+                                <td className="whitespace-nowrap px-4 py-3 text-slate-300">{robo.arquetipo}</td>
+                                <td className="px-4 py-3 text-slate-300">
+                                    {[...new Set(robo.fraquezas)].map(fra => {
+                                        const quantidade = robo.fraquezas.filter(f => f === fra).length;
+                                        return <span key={fra} className="mr-1.5 inline-block">{fra} ({quantidade})</span>;
+                                    })}
+                                </td>
+                                <td className="px-4 py-3 text-slate-300">
+                                    {[...new Set(robo.resistencias)].map(res => {
+                                        const quantidade = robo.resistencias.filter(r => r === res).length;
+                                        return <span key={res} className="mr-1.5 inline-block">{res} ({quantidade})</span>;
+                                    })}
+                                </td>
+                                <td className="whitespace-nowrap px-4 py-3 text-slate-300">{robo.constituicao}</td>
+                                <td className="whitespace-nowrap px-4 py-3 text-slate-300">{robo.forca}</td>
+                                <td className="whitespace-nowrap px-4 py-3 text-slate-300">{robo.agilidade}</td>
+                                <td className="whitespace-nowrap px-4 py-3 text-slate-300">{robo.hp}</td>
+                                <td className="whitespace-nowrap px-4 py-3">
+                                    <div className="flex gap-2">
+                                        <button className={secondaryBtn} onClick={() => abrirModalEdicao(robo)}>
+                                            Editar
+                                        </button>
+
+                                        <button
+                                            className={dangerBtn}
+                                            onClick={() => {
+                                                // Lógica simples de deletar, por enquanto é apenas um aviso ou filtro
+                                                if(window.confirm(`Deseja deletar o robô ${robo.nome}?`)) {
+                                                    handleDeletarRobo(robo.id);
+                                                }
+                                            }}
+                                        >
+                                            Deletar
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
 
             {/* Modal */}
             {modalAberto && (
-                <div className="modal-overlay">
-                    <div>
-                        <h2>Criar Novo Robô</h2>
+                <div className={modalOverlay}>
+                    <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
+                        <h2 className="mb-5 text-xl font-bold text-white">Criar Novo Robô</h2>
 
-                        <div>
-                            <label>Digite o nome do robô: </label>
-                            <input
-                                type="text"
-                                value={novoNome}
-                                onChange={(e) => setNovoNome(e.target.value)}
-                            />
+                        <div className="space-y-4">
+                            <div>
+                                <label className="mb-1.5 block text-sm font-medium text-slate-300">Digite o nome do robô:</label>
+                                <input
+                                    type="text"
+                                    value={novoNome}
+                                    onChange={(e) => setNovoNome(e.target.value)}
+                                    className={inputClasses}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="mb-1.5 block text-sm font-medium text-slate-300">Arquétipo:</label>
+                                <select
+                                    className={selectClasses}
+                                    value={novoArquetipo} onChange={(e) => setNovoArquetipo(e.target.value)}>
+                                    <option value="">Selecione o arquétipo</option>
+                                    {arquetipos.map(arq => (
+                                        <option key={arq.id} value={arq.id}>{arq.archetype_name}</option>
+                                    ))}
+                                </select>
+                            </div>
                         </div>
 
-                        <div>
-                            <label>Arquétipo: </label>
-                            <select 
-                                value={novoArquetipo} onChange={(e) => setNovoArquetipo(e.target.value)}>
-                                <option value="">Selecione o arquétipo</option>
-                                {arquetipos.map(arq => (
-                                    <option key={arq.id} value={arq.id}>{arq.archetype_name}</option>
-                                ))}
-                            </select>
-                        </div>
-                        
                         {/* Botão para salvar o robô novo, preciso adicionar a lógica para inserir no banco de dados */}
-                        <button onClick={handleCriarRobo}>
-                            Criar Robô
-                        </button>
-                        <button onClick={() => {
-                            setModalAberto(false);
-                            setNovoNome("");
-                            setNovoArquetipo("");
-                            }}>Cancelar</button>
+                        <div className="mt-6 flex gap-2">
+                            <button className={primaryBtn + " flex-1"} onClick={handleCriarRobo}>
+                                Criar Robô
+                            </button>
+                            <button
+                                className={secondaryBtn}
+                                onClick={() => {
+                                    setModalAberto(false);
+                                    setNovoNome("");
+                                    setNovoArquetipo("");
+                                }}>Cancelar</button>
+                        </div>
                     </div>
                 </div>
             )}
 
             {/* Modal da edição */}
             {modalEdicaoAberto && (
-                <div className="modal-overlay">
-                    <div>
-                        <label>Nome do Robô: </label>
-                        <input
-                            type="text"
-                            value={roboSendoEditado?.nome || ""}
-                            onChange={(e) => setRoboSendoEditado({
-                                ...roboSendoEditado,
-                                nome: e.target.value
-                            })}
-                        />
-                        <button onClick={handleRenomear}>Renomear</button>
-                        <button onClick={() => setModalEdicaoAberto(false)}>Fechar</button>
-                    </div>
-
-                    <hr />
-
-                    {/* Janela em branco - Futuramente vai ser a parte de customizar peças e também os baralhos */}
-                    <div>
-                        {/* Abas do modal */}
-                        {abaAtual === "menu" && (
-                            <div>
-                                <button
-                                    onClick={() => setAbaAtual("pecas")}
-                                >
-                                    Peças
-                                </button>
-                                <button
-                                    onClick={() => setAbaAtual("decks")}
-                                >
-                                    Decks
-                                </button>
+                <div className={modalOverlay}>
+                    <div className="w-full max-w-3xl rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
+                        <div className="flex items-end gap-3">
+                            <div className="flex-1">
+                                <label className="mb-1.5 block text-sm font-medium text-slate-300">Nome do Robô:</label>
+                                <input
+                                    type="text"
+                                    value={roboSendoEditado?.nome || ""}
+                                    onChange={(e) => setRoboSendoEditado({
+                                        ...roboSendoEditado,
+                                        nome: e.target.value
+                                    })}
+                                    className={inputClasses}
+                                />
                             </div>
-                        )}
+                            <button className={secondaryBtn} onClick={handleRenomear}>Renomear</button>
+                            <button className={dangerBtn} onClick={() => setModalEdicaoAberto(false)}>Fechar</button>
+                        </div>
 
-                        {abaAtual === "pecas" && (
-                            <div>
-                                <button onClick={() => setAbaAtual("menu")}>Voltar</button>
-                                <h3>Editor de Peças</h3>
+                        <hr className="my-5 border-slate-800" />
 
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>Arquétipo</th>
-                                            <th>Fraquezas</th>
-                                            <th>Resistências</th>
-                                            <th>CON</th>
-                                            <th>FOR</th>
-                                            <th>AGI</th>
-                                            <th>HP</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>{roboSendoEditado?.arquetipo}</td>
-                                            <td>
-                                                {[...new Set(listaTotal("fraquezas"))].map(fra => {
-                                                    const qtd = listaTotal("fraquezas").filter(f => f === fra).length;
-                                                    return <span key={fra}>{fra} ({qtd}) </span>
-                                                })}</td>
-                                            <td>
-                                                {[...new Set(listaTotal("resistencias"))].map(res => {
-                                                    const qtd = listaTotal("resistencias").filter(r => r === res).length;
-                                                    return <span key={res}>{res} ({qtd}) </span>
-                                                })}
-                                            </td>
-                                            <td>{calcularTotal("conmod")}</td>
-                                            <td>{calcularTotal("strmod")}</td>
-                                            <td>{calcularTotal("agimod")}</td>
-                                            <td>{calcularTotal("hpmod")}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                                <div>
-                                    <p>Selecione as peças para os slots abaixo:</p>
-                                    <div>
-                                        {slotsConfig.map((slot) => {
-                                            // Criando uma chave única para o estado de cada equipamento
-                                            const chaveSlot = slot.tecnico;
-                                            const pecaEquipada = equipamento[chaveSlot];
-
-                                            console.log(`Slot: ${chaveSlot} | Peça Encontrada:`, pecaEquipada);
-
-                                            return (
-                                                <div key={slot.id}>
-                                                    <label>{slot.label}:</label>
-                                                    <select
-                                                        value={pecaEquipada?.id || ""}
-                                                        onChange={(e) => {
-                                                            const idSelecionado = parseInt(e.target.value);
-                                                            const pecaEncontrada = listaPecas.find(p => p.id === idSelecionado);
-
-                                                            setEquipamento(prev => ({
-                                                                ...prev,
-                                                                [chaveSlot]: pecaEncontrada || null
-                                                            }));
-                                                        }}
-                                                    >
-                                                        <option value="">(Nenhuma)</option>
-                                                        {listaPecas
-                                                            .filter(p => p.slot === slot.tecnico)
-                                                            .map(p => (
-                                                                <option key={p.id} value={p.id}>{p.nome}</option>
-                                                            ))
-                                                        }
-                                                    </select>
-                                                </div>
-                                            )
-                                        })}
-                                    </div>
-                                </div>
-                                <div>
+                        {/* Janela em branco - Futuramente vai ser a parte de customizar peças e também os baralhos */}
+                        <div>
+                            {/* Abas do modal */}
+                            {abaAtual === "menu" && (
+                                <div className="flex gap-3">
                                     <button
-                                        onClick={handleSalvarPecas}
+                                        className={primaryBtn + " flex-1"}
+                                        onClick={() => setAbaAtual("pecas")}
                                     >
-                                        Salvar Configuração de Peças
+                                        Peças
+                                    </button>
+                                    <button
+                                        className={primaryBtn + " flex-1"}
+                                        onClick={() => setAbaAtual("decks")}
+                                    >
+                                        Decks
                                     </button>
                                 </div>
-                            </div>
-                        )}
+                            )}
 
-                        {abaAtual === "decks" && (
-                            <div>
-                                <h3>Editor de Decks - {roboSendoEditado?.nome}</h3>
+                            {abaAtual === "pecas" && (
                                 <div>
-                                    <button onClick={() => setAbaAtual("menu")}>Voltar</button>
-                                    <strong> Status: {verificarStatusDeck(deckAtual)}</strong>
+                                    <div className="mb-4 flex items-center justify-between">
+                                        <button className={secondaryBtn} onClick={() => setAbaAtual("menu")}>← Voltar</button>
+                                        <h3 className="text-lg font-bold text-white">Editor de Peças</h3>
+                                        <div className="w-20" />
+                                    </div>
+
+                                    <div className="overflow-x-auto rounded-xl border border-slate-800">
+                                        <table className="w-full border-collapse bg-slate-900/60 text-sm">
+                                            <thead className="bg-slate-800/80">
+                                                <tr>
+                                                    <th className={thClasses}>Arquétipo</th>
+                                                    <th className={thClasses}>Fraquezas</th>
+                                                    <th className={thClasses}>Resistências</th>
+                                                    <th className={thClasses}>CON</th>
+                                                    <th className={thClasses}>FOR</th>
+                                                    <th className={thClasses}>AGI</th>
+                                                    <th className={thClasses}>HP</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td className="whitespace-nowrap px-4 py-3 text-slate-300">{roboSendoEditado?.arquetipo}</td>
+                                                    <td className="px-4 py-3 text-slate-300">
+                                                        {[...new Set(listaTotal("fraquezas"))].map(fra => {
+                                                            const qtd = listaTotal("fraquezas").filter(f => f === fra).length;
+                                                            return <span key={fra} className="mr-1.5 inline-block">{fra} ({qtd}) </span>
+                                                        })}</td>
+                                                    <td className="px-4 py-3 text-slate-300">
+                                                        {[...new Set(listaTotal("resistencias"))].map(res => {
+                                                            const qtd = listaTotal("resistencias").filter(r => r === res).length;
+                                                            return <span key={res} className="mr-1.5 inline-block">{res} ({qtd}) </span>
+                                                        })}
+                                                    </td>
+                                                    <td className="whitespace-nowrap px-4 py-3 text-slate-300">{calcularTotal("conmod")}</td>
+                                                    <td className="whitespace-nowrap px-4 py-3 text-slate-300">{calcularTotal("strmod")}</td>
+                                                    <td className="whitespace-nowrap px-4 py-3 text-slate-300">{calcularTotal("agimod")}</td>
+                                                    <td className="whitespace-nowrap px-4 py-3 text-slate-300">{calcularTotal("hpmod")}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <div className="mt-5">
+                                        <p className="mb-3 text-sm text-slate-400">Selecione as peças para os slots abaixo:</p>
+                                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                            {slotsConfig.map((slot) => {
+                                                // Criando uma chave única para o estado de cada equipamento
+                                                const chaveSlot = slot.tecnico;
+                                                const pecaEquipada = equipamento[chaveSlot];
+
+                                                console.log(`Slot: ${chaveSlot} | Peça Encontrada:`, pecaEquipada);
+
+                                                return (
+                                                    <div key={slot.id}>
+                                                        <label className="mb-1.5 block text-sm font-medium text-slate-300">{slot.label}:</label>
+                                                        <select
+                                                            className={selectClasses}
+                                                            value={pecaEquipada?.id || ""}
+                                                            onChange={(e) => {
+                                                                const idSelecionado = parseInt(e.target.value);
+                                                                const pecaEncontrada = listaPecas.find(p => p.id === idSelecionado);
+
+                                                                setEquipamento(prev => ({
+                                                                    ...prev,
+                                                                    [chaveSlot]: pecaEncontrada || null
+                                                                }));
+                                                            }}
+                                                        >
+                                                            <option value="">(Nenhuma)</option>
+                                                            {listaPecas
+                                                                .filter(p => p.slot === slot.tecnico)
+                                                                .map(p => (
+                                                                    <option key={p.id} value={p.id}>{p.nome}</option>
+                                                                ))
+                                                            }
+                                                        </select>
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
+                                    </div>
+                                    <div className="mt-6">
+                                        <button
+                                            className={primaryBtn + " w-full"}
+                                            onClick={handleSalvarPecas}
+                                        >
+                                            Salvar Configuração de Peças
+                                        </button>
+                                    </div>
                                 </div>
+                            )}
 
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Nome da Carta</th>
-                                            <th>Quantidade</th>
-                                            <th>Ações</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {deckAtual.map((carta) => (
-                                            <tr key={carta.id}>
-                                                <td>{carta.id}</td>
-                                                <td>{carta.name}</td>
-                                                <td>{carta.quantity} / {carta.max_inventory}</td>
-                                                <td>
-                                                    <button onClick={() => alterarQuantidadeCarta(carta.id, -1)}>-</button>
-                                                    <button onClick={() => alterarQuantidadeCarta(carta.id, 1)}>+</button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                            {abaAtual === "decks" && (
+                                <div>
+                                    <h3 className="text-lg font-bold text-white">Editor de Decks - {roboSendoEditado?.nome}</h3>
+                                    <div className="mt-3 mb-4 flex items-center justify-between">
+                                        <button className={secondaryBtn} onClick={() => setAbaAtual("menu")}>← Voltar</button>
+                                        <strong className="text-sm text-slate-300">Status: {verificarStatusDeck(deckAtual)}</strong>
+                                    </div>
 
-                                {/* Botão para enviar o estado deckAtual consolidado para o Backend */}
-                                <button
-                                    disabled={deckAtual.reduce((acc, c) => acc + c.quantity, 0) !== 10}
-                                    onClick={salvarDeckNoBanco}>
-                                    Salvar Deck
-                                </button>
-                            </div>
-                        )}
+                                    <div className="overflow-x-auto rounded-xl border border-slate-800">
+                                        <table className="w-full border-collapse bg-slate-900/60 text-sm">
+                                            <thead className="bg-slate-800/80">
+                                                <tr>
+                                                    <th className={thClasses}>ID</th>
+                                                    <th className={thClasses}>Nome da Carta</th>
+                                                    <th className={thClasses}>Quantidade</th>
+                                                    <th className={thClasses}>Ações</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-800">
+                                                {deckAtual.map((carta) => (
+                                                    <tr key={carta.id} className="transition hover:bg-slate-800/50">
+                                                        <td className="whitespace-nowrap px-4 py-3 text-slate-300">{carta.id}</td>
+                                                        <td className="whitespace-nowrap px-4 py-3 font-medium text-white">{carta.name}</td>
+                                                        <td className="whitespace-nowrap px-4 py-3 text-slate-300">{carta.quantity} / {carta.max_inventory}</td>
+                                                        <td className="whitespace-nowrap px-4 py-3">
+                                                            <div className="flex gap-2">
+                                                                <button
+                                                                    className="h-7 w-7 rounded-md border border-slate-700 bg-slate-800 font-bold text-slate-200 transition hover:bg-slate-700"
+                                                                    onClick={() => alterarQuantidadeCarta(carta.id, -1)}
+                                                                >-</button>
+                                                                <button
+                                                                    className="h-7 w-7 rounded-md border border-slate-700 bg-slate-800 font-bold text-slate-200 transition hover:bg-slate-700"
+                                                                    onClick={() => alterarQuantidadeCarta(carta.id, 1)}
+                                                                >+</button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
 
+                                    {/* Botão para enviar o estado deckAtual consolidado para o Backend */}
+                                    <button
+                                        className={primaryBtn + " mt-5 w-full"}
+                                        disabled={deckAtual.reduce((acc, c) => acc + c.quantity, 0) !== 10}
+                                        onClick={salvarDeckNoBanco}>
+                                        Salvar Deck
+                                    </button>
+                                </div>
+                            )}
+
+                        </div>
                     </div>
                 </div>
             )}
-        </div>      
+        </div>
     )
 }
