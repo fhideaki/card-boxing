@@ -1,8 +1,7 @@
-from ui_manager import UIManager
-from static import *
+from .static import weaknesses_matrix, resistances_matrix
 # Classe que vai ser a "calculadora" do juiz. Ela vai calcular, aplicar e retornar os modificadores e o dano.
 class DamageCalculator:
-    def __init__(self, ui_manager: UIManager):
+    def __init__(self, ui_manager):
         self.ui = ui_manager
         self.ui.printMessage('Calculator created.')
     
@@ -15,7 +14,7 @@ class DamageCalculator:
         def_weaknesses = defender.robot.weaknesses
         weaknesses_multiplier = 0
         for weakness in def_weaknesses:
-            if weakness in weaknesses_matrix[atk_type]:
+            if weakness in weaknesses_matrix.get(atk_type, []):
                 weaknesses_multiplier += 0.5
         # Retorna o multiplicador de dano
         return weaknesses_multiplier
@@ -29,7 +28,7 @@ class DamageCalculator:
         def_resistances = defender.robot.resistances
         resistances_multiplier = 0
         for resistance in def_resistances:
-            if resistance in resistances_matrix[atk_type]:
+            if resistance in resistances_matrix.get(atk_type, []):
                 resistances_multiplier += 1
         # Retorna o multiplicador de dano
         return resistances_multiplier

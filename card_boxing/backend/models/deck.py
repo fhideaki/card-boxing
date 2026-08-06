@@ -36,9 +36,13 @@ def build_deck(deck_data, all_cards):
 
 # Criando a classe deck.
 class Deck:
-    def __init__(self, archetype):
+    def __init__(self, archetype=None, explicit_deck=None):
 
         self.deck = []
+
+        if explicit_deck is not None:
+            self.deck = list(explicit_deck)
+            return
 
         cards = card_list
 

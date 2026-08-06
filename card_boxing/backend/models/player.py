@@ -1,23 +1,20 @@
 # Imports
-from robot import Robot
-from deck import Deck
-from rich.console import Console
-from rich.table import Table
-from ui_manager import UIManager
+from .robot import Robot
+from .deck import Deck
 import random
 
 # Criando a classe jogador
 class Player:
-    def __init__(self, name, robot_name, archetype, ui_manager: UIManager):
+    def __init__(self, name, robot_name, archetype, ui_manager, base_stats=None, resistances=None, weaknesses=None, explicit_deck=None):
         self.name = name
 
         self.ui = ui_manager
-        
+
         # Robô do jogador
-        self.robot = Robot(archetype, self.ui, robot_name)
+        self.robot = Robot(archetype, self.ui, robot_name, base_stats=base_stats, resistances=resistances, weaknesses=weaknesses)
 
         # Deck base do jogador
-        self.deck = Deck(archetype)
+        self.deck = Deck(archetype, explicit_deck=explicit_deck)
 
         # Cartas descartadas
         self.graveyard = []
@@ -30,9 +27,6 @@ class Player:
 
         # Deck completo do jogador
         self.game_deck = []
-        
-        # Console para printar as cartas
-        self.player_console = Console()
 
         # Atributos do jogador
         self.initial_constitution = self.robot.constitution
@@ -139,13 +133,19 @@ class Player:
         self.ui.console.print(graveyard_table)
             
     # Escolhe a carta
-    def chooseCard(self):
-        self.showHand()
-        chosen_card = int(input("Choose a card:"))
-        return self.hand[chosen_card]
-    
-    def playCard(self):
-        chosen_card = self.chooseCard()
+    def chooseCard(self, card_id=None):
+        if card_id is None:
+            self.showHand()
+            chosen_card = int(input("Choose a card:"))
+            return self.hand[chosen_card]
+
+        for card in self.hand:
+            if card['id'] == card_id:
+                return card
+        raise ValueError(f"Card id {card_id} not in hand")
+
+    def playCard(self, card_id=None):
+        chosen_card = self.chooseCard(card_id)
         self.hand.remove(chosen_card)
         self.graveyard.append(chosen_card)
         return chosen_card

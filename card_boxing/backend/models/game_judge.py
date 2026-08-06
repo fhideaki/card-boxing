@@ -1,16 +1,15 @@
 # Imports
-from player import Player
-from deck import Deck
-from robot import Robot
-from static import conflicts_table
-from ui_manager import UIManager
+from .player import Player
+from .deck import Deck
+from .robot import Robot
+from .static import conflicts_table
 from typing import Dict, Any, Tuple, List, TYPE_CHECKING
-from damage_calculator import DamageCalculator
+from .damage_calculator import DamageCalculator
 import random
 
 # Criando uma classe "juiz" para conferir os status do deck e do robô de cada jogador.
 class GameJudge:
-    def __init__(self, ui_manager: UIManager, damage_calculator: DamageCalculator):
+    def __init__(self, ui_manager, damage_calculator: DamageCalculator):
         # Inicializando o gerenciador de UI
         self.ui = ui_manager
         self.ui.printMessage('Judge created.')
@@ -26,6 +25,11 @@ class GameJudge:
         self.turn = 0
         self.round = 0
         self.score = {}
+
+        # Estado de fim de jogo (substitui o antigo SystemExit)
+        self.game_over = False
+        self.winner = None
+        self.win_reason = None
 
     # Métodos auxiliares
         # Método para printar as mensagens para o jogo
@@ -251,11 +255,16 @@ class GameJudge:
     
     # Método para declarar vencedor
     def declare_winner(self, winner, reason):
+        if self.game_over:
+            return
+
         self.log_message("---GAME OVER---")
         self.log_message(f"Winner: {winner.name}")
         self.log_message(reason)
-        
-        raise SystemExit("Game Over, Thanks for playing!")
+
+        self.game_over = True
+        self.winner = winner
+        self.win_reason = reason
         
     # Método para verificar se o jogador caiu, e se ele consegue se levantar
     def player_down(self, attacker, target):

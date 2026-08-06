@@ -8,6 +8,7 @@ from models.deck import *
 from routes.parts import parts_bp
 from routes.cards import cards_bp
 from routes.robots import robots_bp
+from routes.battles import battle_bp
 
 # Construtor do flask/ Flask constructor
 api = Blueprint('api', __name__)
@@ -15,6 +16,7 @@ api = Blueprint('api', __name__)
 api.register_blueprint(parts_bp)
 api.register_blueprint(cards_bp)
 api.register_blueprint(robots_bp)
+api.register_blueprint(battle_bp)
 
 # Rota de Registro de Jogador
 @api.route('/register', methods=['POST'])

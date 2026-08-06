@@ -22,17 +22,17 @@ def calculate_secondary_stats(base):
 # Criando primeiro a classe robô.
 class Robot:
     # Aqui o jogador define se ele quer um arquétipo de robô focado em ataque, defesa ou balanceado. Isso define os atributos base do robô.
-    def __init__(self, archetype, ui_manager, robot_name=None):
-        
+    def __init__(self, archetype, ui_manager, robot_name=None, base_stats=None, resistances=None, weaknesses=None):
+
         self.archetype = archetype
 
-        data = robot_archetypes[archetype]["base_stats"]
-        
+        data = base_stats if base_stats is not None else robot_archetypes[archetype]["base_stats"]
+
         self.constitution = data["constitution"]
         self.strength = data["strength"]
         self.agility = data["agility"]
-        self.HP = data["HP"]
-                    
+        self.HP = data["hp"] if base_stats is not None else data["HP"]
+
         self.defense = self.constitution + (0.6 * self.strength)
         self.attack = self.strength + (0.6 * self.agility)
         self.clinch = self.agility + (0.6 * self.strength)
@@ -42,8 +42,8 @@ class Robot:
         # Calcular o quanto de vida o jogador vai recuperar quando se levantar
         self.recover_modifier = 0
 
-        self.resistances = []
-        self.weaknesses = []
+        self.resistances = list(resistances) if resistances is not None else []
+        self.weaknesses = list(weaknesses) if weaknesses is not None else []
         
         # Dicionário com os slots do robô e suas partes
         self.slots = {

@@ -5,6 +5,7 @@ const links = [
     { to: "/cards", label: "Cartas" },
     { to: "/parts", label: "Partes" },
     { to: "/robots", label: "Meus Robôs" },
+    { to: "/battle", label: "Batalha" },
 ];
 
 export default function Navbar() {

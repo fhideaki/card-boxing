@@ -1,7 +1,7 @@
-from effects import *
-from player import Player
-from game_judge import GameJudge
-from damage_calculator import DamageCalculator
+from .effects import *
+from .player import Player
+from .game_judge import GameJudge
+from .damage_calculator import DamageCalculator
 import random
 
 # Criando a classe Game - Ela vai iniciar uma partida
@@ -46,7 +46,11 @@ class Turn:
         # Jogadores perdem invencibilidade
         self.gamejudge.reset_invulnerability(self.player1)
         self.gamejudge.reset_invulnerability(self.player2)
-        
+
+        # Jogadores voltam a poder comprar cartas (efeito do clinch dura só 1 turno)
+        self.gamejudge.reset_draw_lock(self.player1)
+        self.gamejudge.reset_draw_lock(self.player2)
+
         # Se ambos não possuírem cartas em mãos e não possuírem cartas para comprar - O jogo acaba e o resultado vai para os pontos.
         p1_out = self.gamejudge.is_incapacitaded(self.player1)
         print(p1_out)
@@ -62,22 +66,19 @@ class Turn:
    
             # Se nao possuir cartas em mãos E não possuir cartas para comprar - O jogador está derrotado.
         if p1_out and not p2_out:
-            reason = f"{self.p1.name} is incapacitaded to fight!"
-            self.gamejudge.declare_winner(self.player2, "Incapacitated Opponent.")        
+            self.gamejudge.declare_winner(self.player2, "Incapacitated Opponent.")
         if p2_out and not p1_out:
-            reason = f"{self.p2.name} is incapacitaded to fight!"
             self.gamejudge.declare_winner(self.player1, "Incapacitated Opponent.")
             
     
-    # Segunda fase - Executando o começo do round        
-    def execute_second_phase(self):
-        print('-----------------------Phase 2 Start-----------------------')      
-        # Jogadores compram as cartas se forem permitidos.
+    # Segunda fase (compra) - Jogadores compram as cartas se forem permitidos.
+    def execute_draw_phase(self):
+        print('-----------------------Phase 2 (Draw) Start-----------------------')
         p1_draw_block = self.player1.draw_blocked
         print(p1_draw_block)
         p2_draw_block = self.player2.draw_blocked
         print(p2_draw_block)
-        
+
         # Se o jogador 1 não estiver bloqueado
         if not p1_draw_block:
             # E se o jogador 1 tiver cartas na mão menos do que os slots da mão livres
@@ -89,11 +90,13 @@ class Turn:
             # E se o jogador 1 tiver cartas na mão menos do que os slots da mão livres
             if len(self.player2.hand) < self.player2.max_hand_slots:
                 self.player2.getCard(1)
-                
-        # Ambos os jogadores escolhem uma carta para jogar
-        p1_card = self.player1.playCard()
-        p2_card = self.player2.playCard()
-        
+
+    # Segunda fase (jogada) - Ambos os jogadores jogam a carta escolhida
+    def execute_play_phase(self, p1_card_id=None, p2_card_id=None):
+        print('-----------------------Phase 2 (Play) Start-----------------------')
+        p1_card = self.player1.playCard(p1_card_id)
+        p2_card = self.player2.playCard(p2_card_id)
+
         # Juiz registra ambas as cartas no turno
         self.gamejudge.register_action(self.player1, p1_card)
         print(self.gamejudge.current_turn_actions)
@@ -130,6 +133,9 @@ class Turn:
         conflict_result = self.gamejudge.determine_conflict(card_player1, card_player2)
         print(conflict_result)
 
+        # Acumulador de dano aplicado neste turno, devolvido no final do método
+        damage_dealt = {self.player1: 0, self.player2: 0}
+
         # Se a carta for Special Guard, pula a parte de dano porque nada vai ser aplicado.
         if card_player1['name'] == 'Special Guard' or card_player2['name'] == 'Special Guard':
             print('Um jogador usou Special Guard')
@@ -153,6 +159,7 @@ class Turn:
                 print('P1 usou Iron Guard')
                 reflected_damage = 0.20 * p1_base_defense
                 self.player2.initial_HP -= reflected_damage
+                damage_dealt[self.player2] += reflected_damage
                 self.gamejudge.log_message(f"Player 1 - {p1_name} - used Iron Guard! Reflected {reflected_damage} points of damage!")
                 self.gamejudge.player_down(self.player1, self.player2)
                 print(self.player1.initial_HP)
@@ -162,6 +169,7 @@ class Turn:
                 print('P2 usou Iron Guard')
                 reflected_damage = 0.20 * p2_base_defense
                 self.player1.initial_HP -= reflected_damage
+                damage_dealt[self.player1] += reflected_damage
                 self.gamejudge.log_message(f"Player 2 - {p2_name} - used Iron Guard! Reflected {reflected_damage} points of damage!")
                 self.gamejudge.player_down(self.player2, self.player1)
                 print(self.player1.initial_HP)
@@ -220,6 +228,7 @@ class Turn:
                 # Aplica o dano
                 print(self.player2.initial_HP)
                 self.player2.initial_HP -= base_damage
+                damage_dealt[self.player2] += base_damage
                 print(self.player2.initial_HP)
                 self.gamejudge.log_message(f"Player 1 - {p1_name} - Attack connected! {base_damage} points of damage applied!")
                 self.gamejudge.player_down(self.player1, self.player2)
@@ -233,13 +242,13 @@ class Turn:
                     base_damage = 2 * base_damage
                     self.gamejudge.log_message(f"Player 2 - {p2_name} - used Strong Attack! Damage doubled to {base_damage}")
                 elif card_player2['name'] == 'Rubber Attack':
-                    self.gamejudge.set_draw_lock(self.player2)
+                    self.gamejudge.set_draw_lock(self.player1)
                     self.gamejudge.log_message(f"Player 2 - {p2_name} - used Rubber Arm! The attack connected and now Player 1 - {p1_name} is clinched!")
                 elif card_player2['name'] == 'Fiery Punch':
-                    self.gamejudge.drop_hand_slot(self.player2, 1)
+                    self.gamejudge.drop_hand_slot(self.player1, 1)
                     self.gamejudge.log_message(f"Player 2 - {p2_name} - used Fiery Punch! Player 1 - {p1_name} lost 1 hand slot!")
 
-                
+
                 # Aumenta o score
                 self.gamejudge.give_point(self.player2)
                 print('P2 +1 Ponto')
@@ -247,6 +256,7 @@ class Turn:
                 # Aplica o dano
                 print(self.player1.initial_HP)
                 self.player1.initial_HP -= base_damage
+                damage_dealt[self.player1] += base_damage
                 print(self.player1.initial_HP)
                 self.gamejudge.log_message(f"Player 2 - {p2_name} - Attack connected! {base_damage} points of damage applied!")
                 self.gamejudge.player_down(self.player2, self.player1)
@@ -259,23 +269,23 @@ class Turn:
                     print(self.player1.initial_agility)
                     print(self.player2.initial_agility)
 
-                    self._apply_attack(self.player1, self.player2, card_player1, p2_weaknesses_multiplier, p2_resistances_multiplier)
+                    damage_dealt[self.player2] += self._apply_attack(self.player1, self.player2, card_player1, p2_weaknesses_multiplier, p2_resistances_multiplier)
 
                     # Se o Player 2 estiver ainda apto a atacar
                     if not self.gamejudge.is_knocked_out(self.player2):
-                        self._apply_attack(self.player2, self.player1, card_player2, p1_weaknesses_multiplier, p1_resistances_multiplier)
+                        damage_dealt[self.player1] += self._apply_attack(self.player2, self.player1, card_player2, p1_weaknesses_multiplier, p1_resistances_multiplier)
 
-                # Player 2 é mais ágil                
+                # Player 2 é mais ágil
                 elif self.player2.initial_agility > self.player1.initial_agility:
 
                     print(self.player1.initial_agility)
-                    print(self.player2.initial_agility)       
+                    print(self.player2.initial_agility)
 
-                    self._apply_attack(self.player2, self.player1, card_player2, p1_weaknesses_multiplier, p1_resistances_multiplier)
-                    
+                    damage_dealt[self.player1] += self._apply_attack(self.player2, self.player1, card_player2, p1_weaknesses_multiplier, p1_resistances_multiplier)
+
                     # Se o Player 1 estiver ainda apto a atacar
-                    if not self.gamejudge.is_knocked_out(self.player2):
-                        self._apply_attack(self.player1, self.player2, card_player1, p2_weaknesses_multiplier, p2_resistances_multiplier)
+                    if not self.gamejudge.is_knocked_out(self.player1):
+                        damage_dealt[self.player2] += self._apply_attack(self.player1, self.player2, card_player1, p2_weaknesses_multiplier, p2_resistances_multiplier)
 
                 # Os dois player tem a mesma agilidade
                 elif self.player1.initial_agility == self.player2.initial_agility:
@@ -311,12 +321,14 @@ class Turn:
 
 
                     # Primeiro Ataque
-                    self._apply_attack(first_attacker, second_attacker, card_first, weaknesses_second, resistances_second)
-                    
+                    damage_dealt[second_attacker] += self._apply_attack(first_attacker, second_attacker, card_first, weaknesses_second, resistances_second)
+
                     # Checa se o alvo do primeiro ataque ainda está apto para revidar
                     if not self.gamejudge.is_knocked_out(second_attacker):
                         # Segundo Ataque (Revide)
-                        self._apply_attack(second_attacker, first_attacker, card_second, weaknesses_first, resistances_first)
+                        damage_dealt[first_attacker] += self._apply_attack(second_attacker, first_attacker, card_second, weaknesses_first, resistances_first)
+
+        return {'conflict_result': conflict_result, 'damage_dealt': damage_dealt}
 
     def _apply_attack(self, attacker, target, card_attacker, target_weaknesses_multiplier, target_resistances_multiplier):
         

@@ -4,6 +4,7 @@ import Home from "./pages/Home";
 import Cards from "./pages/Cards";
 import Parts from "./pages/Parts";
 import MyRobots from "./pages/MyRobots";
+import Battle from "./pages/Battle";
 
 // import MyRobots from "./pages/MyRobots";
 // import Login from "./pages/Login";
@@ -19,6 +20,7 @@ function App() {
         <Route path="/cards" element={<Cards />} />
         <Route path="/parts" element={<Parts />} />
         <Route path="/robots" element={<MyRobots />} />
+        <Route path="/battle" element={<Battle />} />
         {/* <Route path="/robots" element={<MyRobots />} />
         <Route path="/login" element={<Login />} /> */}
       </Routes>
